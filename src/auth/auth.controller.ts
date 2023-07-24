@@ -8,15 +8,21 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/Login';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { UseRefreshDto } from './dto/UseRefresh';
 
-@Controller()
+@Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('auth/login')
+  @Post('login')
   async login(@Body() loginData: LoginDto) {
     return this.authService.login(loginData);
+  }
+
+  @Post('use-refresh')
+  async useRefresh(@Body() { refreshToken }: UseRefreshDto) {
+    return this.authService.useRefresh(refreshToken);
   }
 
   @UseGuards(JwtAuthGuard)
