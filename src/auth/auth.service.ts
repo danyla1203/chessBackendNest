@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/Login';
 import { jwtConstants } from './constants';
 import { AuthModel } from './model';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -40,15 +41,18 @@ export class AuthService {
     return tokens;
   }
 
-  async login(loginData: LoginDto) {
+  async validateUser(loginData: LoginDto) {
     const user = await this.model.findByEmail(loginData.email);
     if (!user || !bcrypt.compare(loginData.password, user.password)) {
       throw new UnauthorizedException();
     }
+    return user;
+  }
 
-    const tokens = await this.getTokens(user.id, loginData.deviceId);
+  async login(user: User, deviceId: string) {
+    const tokens = await this.getTokens(user.id, deviceId);
 
-    await this.model.createSession(user.id, tokens.refresh, loginData.deviceId);
+    await this.model.createSession(user.id, tokens.refresh, deviceId);
 
     return tokens;
   }
