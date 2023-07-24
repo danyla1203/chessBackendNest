@@ -23,10 +23,28 @@ export class AuthModel {
       },
     });
   }
-  public deleteSession(auth: Auth): Promise<Auth> {
-    return this.prisma.auth.delete({ where: { id: auth.id } });
+  public deleteSession(id: number): Promise<Auth> {
+    return this.prisma.auth.delete({ where: { id } });
   }
   public findSession(refreshToken: string): Promise<Auth> {
     return this.prisma.auth.findFirst({ where: { refreshToken } });
+  }
+  public findSessionByUserId(id: number, deviceId: string) {
+    return this.prisma.auth.findFirst({
+      select: {
+        id: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+        expiresIn: true,
+        deviceId: true,
+        refreshToken: true,
+      },
+      where: { userId: id, deviceId },
+    });
   }
 }

@@ -7,18 +7,17 @@ import {
   Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from './jwt-auth.guard';
 import { UseRefreshDto } from './dto/UseRefresh';
-import { LocalAuthGuard } from './local-auth.guard';
+import { AuthGuard } from 'src/tokens/jwt.guard';
+import { LoginDto } from './dto/Login';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Request() req) {
-    return this.authService.login(req.user, req.body.deviceId);
+  async login(@Body() loginData: LoginDto) {
+    return this.authService.login(loginData);
   }
 
   @Post('use-refresh')
@@ -26,7 +25,7 @@ export class AuthController {
     return this.authService.useRefresh(refreshToken);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;
