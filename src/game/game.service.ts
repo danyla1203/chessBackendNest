@@ -18,6 +18,7 @@ export class GameService {
     if (!game) throw new NotFoundException('Game not found');
 
     game.addPlayer(player);
+    this.list.removeGameFromLobby(gameId);
     game.start();
 
     return game;

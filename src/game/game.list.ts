@@ -11,10 +11,18 @@ export class GameList {
     this.games = [];
   }
 
-  addGameToLobby(game: Game) {
+  public addGameToLobby(game: Game) {
     this.lobby.push(game);
   }
-  findInLobby(id: number) {
+  public findInLobby(id: number) {
     return this.lobby.find((game) => game.id === id);
+  }
+
+  public removeGameFromLobby(gameId: number): void {
+    const index: number = this.lobby.findIndex(
+      (game: Game) => game.id === gameId,
+    );
+    this.games.push(this.lobby[index]);
+    this.lobby.splice(index, 1);
   }
 }

@@ -6,7 +6,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/Login';
 import { AuthModel } from './model';
-import { TokenService } from 'src/tokens/token.service';
+import { TokenService } from 'src/auth/tokens/token.service';
 
 @Injectable()
 export class AuthService {

@@ -10,7 +10,7 @@ import { UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import { WsValidationFilter } from '../tools/WsValidationFilter';
 import { GameService } from './game.service';
 import { AuthService } from 'src/auth/auth.service';
-import { TokenService } from 'src/tokens/token.service';
+import { TokenService } from 'src/auth/tokens/token.service';
 import { ConnectToGameDto } from './dto/ConnectToGame';
 
 @WebSocketGateway({ namespace: 'game' })

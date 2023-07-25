@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UseRefreshDto } from './dto/UseRefresh';
-import { AuthGuard } from 'src/tokens/jwt.guard';
+import { AuthGuard } from 'src/auth/tokens/jwt.guard';
 import { LoginDto } from './dto/Login';
 
 @Controller('auth')

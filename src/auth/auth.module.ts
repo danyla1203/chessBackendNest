@@ -3,7 +3,7 @@ import { AuthService } from './auth.service';
 import { PrismaService } from 'src/prisma.service';
 import { AuthController } from './auth.controller';
 import { AuthModel } from './model';
-import { TokenModule } from 'src/tokens/tokens.module';
+import { TokenModule } from 'src/auth/tokens/tokens.module';
 
 @Module({
   imports: [TokenModule],
