@@ -6,7 +6,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/Login';
 import { AuthModel } from './model';
-import { TokenService } from 'src/auth/tokens/token.service';
+import { TokenService } from './tokens/token.service';
 
 @Injectable()
 export class AuthService {
@@ -37,19 +37,15 @@ export class AuthService {
     return auth.user;
   }
 
-  async validateUser(loginData: LoginDto) {
-    const user = await this.model.findByEmail(loginData.email);
-    if (!user || !bcrypt.compare(loginData.password, user.password)) {
-      throw new UnauthorizedException();
-    }
-    return user;
-  }
-
   async login(loginData: LoginDto) {
     const user = await this.model.findByEmail(loginData.email);
-    if (!user || !bcrypt.compare(loginData.password, user.password)) {
-      throw new UnauthorizedException();
-    }
+    if (!user) throw new UnauthorizedException();
+
+    const isPasswordValid = await bcrypt.compare(
+      loginData.password,
+      user.password,
+    );
+    if (!isPasswordValid) throw new UnauthorizedException();
 
     const tokens = await this.tokenService.getPair(user.id, loginData.deviceId);
 
