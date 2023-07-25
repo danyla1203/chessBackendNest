@@ -2,7 +2,6 @@ import {
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
-  WsResponse,
   ConnectedSocket,
   OnGatewayConnection,
 } from '@nestjs/websockets';
@@ -51,8 +50,9 @@ export class GameGateway implements OnGatewayConnection {
   ) {
     const { id } = this.service.createGame(client.player, config);
     client.join(`game:${id}`);
+
     const lobby = this.service.getLobby();
-    return { event: 'lobby', data: lobby };
+    return { event: 'lobby:update', data: lobby };
   }
 
   @UsePipes(new ValidationPipe())
@@ -64,7 +64,7 @@ export class GameGateway implements OnGatewayConnection {
   ) {
     const { id } = this.service.connectToGame(client.player, gameId);
     client.join(`game:${id}`);
-    client.to(`game:${id}`).emit('game-start');
-    return { event: 'game-start' };
+    client.to(`game:${id}`).emit('game:start');
+    return { event: 'game:start' };
   }
 }
