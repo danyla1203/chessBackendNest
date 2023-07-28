@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateGameDto } from './dto/CreateGame';
 import { GameList } from './game.list';
 import { Game } from './game.entity';
+import { Socket } from 'socket.io';
 
 @Injectable()
 export class GameService {
@@ -13,7 +14,7 @@ export class GameService {
     return newGame;
   }
 
-  public connectToGame(player, gameId: number) {
+  public connectToGame(player: Socket, gameId: number) {
     const game = this.list.findInLobby(gameId);
     if (!game) throw new NotFoundException('Game not found');
 
@@ -23,6 +24,7 @@ export class GameService {
 
     return game;
   }
+
   public getLobby() {
     return this.list.lobby;
   }

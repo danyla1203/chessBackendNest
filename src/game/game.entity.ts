@@ -11,14 +11,14 @@ export class Game {
   players: Socket[];
   config: Config;
   isActive: boolean;
-  constructor(player, config: Config) {
+  constructor(player: Socket, config: Config) {
     this.id = Math.floor(Math.random() * 100000);
     this.players = [player];
     this.config = config;
     this.isActive = false;
   }
 
-  addPlayer(player) {
+  addPlayer(player: Socket) {
     this.players.push(player);
   }
 

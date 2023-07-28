@@ -4,6 +4,7 @@ import {
   WebSocketGateway,
   ConnectedSocket,
   OnGatewayConnection,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { CreateGameDto } from './dto/CreateGame';
 import { UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
@@ -12,14 +13,20 @@ import { GameService } from './game.service';
 import { AuthService } from 'src/auth/auth.service';
 import { TokenService } from 'src/auth/tokens/token.service';
 import { ConnectToGameDto } from './dto/ConnectToGame';
+import { Server } from 'socket.io';
 
 @WebSocketGateway({ namespace: 'game' })
+@UsePipes(new ValidationPipe())
+@UseFilters(new WsValidationFilter())
 export class GameGateway implements OnGatewayConnection {
   constructor(
     private readonly service: GameService,
     private readonly authService: AuthService,
     private readonly tokensService: TokenService,
   ) {}
+
+  @WebSocketServer()
+  server: Server;
 
   private makePlayer() {
     return {
@@ -41,8 +48,6 @@ export class GameGateway implements OnGatewayConnection {
     }
   }
 
-  @UsePipes(new ValidationPipe())
-  @UseFilters(new WsValidationFilter())
   @SubscribeMessage('create')
   async createGame(
     @ConnectedSocket() client,
@@ -52,11 +57,9 @@ export class GameGateway implements OnGatewayConnection {
     client.join(`game:${id}`);
 
     const lobby = this.service.getLobby();
-    return { event: 'lobby:update', data: lobby };
+    this.server.emit('lobby:update', lobby);
   }
 
-  @UsePipes(new ValidationPipe())
-  @UseFilters(new WsValidationFilter())
   @SubscribeMessage('join')
   joinGame(
     @ConnectedSocket() client,
@@ -64,7 +67,6 @@ export class GameGateway implements OnGatewayConnection {
   ) {
     const { id } = this.service.connectToGame(client.player, gameId);
     client.join(`game:${id}`);
-    client.to(`game:${id}`).emit('game:start');
-    return { event: 'game:start' };
+    this.server.to(`game:${id}`).emit('game:start');
   }
 }
