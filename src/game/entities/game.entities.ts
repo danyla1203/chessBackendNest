@@ -12,15 +12,11 @@ export class FiguresSet {
   b: Set<Figure>;
 }
 
-export class StrikedData {
-  strikedSide: 'w' | 'b';
-  figure: Figure;
+export class Board {
+  board: Figures;
+  opponent: Figures;
 }
-export class ShahData {
-  shachedSide: 'w' | 'b';
-  byFigure: Figure;
-}
-export class MateData {
-  matedSide: 'w' | 'b';
-  byFigure: Figure;
+export class CellUpdate {
+  prevCell: Cell;
+  newCell: Cell;
 }

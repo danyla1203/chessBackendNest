@@ -4,7 +4,6 @@ import {
   ExecutionContext,
   Injectable,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
 import { TokenService } from './token.service';
 import { AuthService } from 'src/auth/auth.service';
 

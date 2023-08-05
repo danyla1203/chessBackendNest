@@ -3,10 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateGameDto } from './dto/CreateGame';
+import { CreateGameDto } from './dto';
 import { GameList } from './game.list';
-import { Game } from './entities/game';
-import { Client } from './entities/Client';
+import { Game, Client, FiguresCellState } from './entities';
 
 @Injectable()
 export class GameService {
@@ -37,5 +36,29 @@ export class GameService {
 
   public getLobby() {
     return this.list.lobby.map((game) => game.getGameData());
+  }
+  public findGameById(id: number) {
+    const game = this.list.games.find((game) => game.id === id);
+    if (!game) throw new NotFoundException('Game not found');
+    return game;
+  }
+
+  public getActualGameState(game: Game) {
+    const boards: FiguresCellState = game.process.state;
+
+    const plainObj: { [key: string]: { [key: string]: string } } = {
+      white: {},
+      black: {},
+    };
+
+    const [white, black] = Object.values(boards);
+    for (const [figure, cell] of white.entries()) {
+      plainObj.white[figure] = cell;
+    }
+    for (const [figure, cell] of black.entries()) {
+      plainObj.black[figure] = cell;
+    }
+
+    return plainObj;
   }
 }

@@ -1,9 +1,10 @@
+import { ShahData } from '../dto';
 import {
   Figures,
   Figure,
   Cell,
-  ShahData,
   FiguresSet,
+  Board,
 } from '../entities/game.entities';
 
 export class GameState {
@@ -46,12 +47,19 @@ export class GameState {
   get side() {
     return this.sideToTurn;
   }
+  set side(side: 'w' | 'b') {
+    this.sideToTurn = side;
+  }
+  setNextTurnSide() {
+    this.sideToTurn = this.sideToTurn == 'w' ? 'b' : 'w';
+  }
   set turnSide(side: 'w' | 'b') {
     this.sideToTurn = side;
   }
   get shah() {
     return this.shahData;
   }
+
   public setShahData(toSide: 'w' | 'b', byFigure: Figure): void {
     this.shahData = {
       shachedSide: toSide,

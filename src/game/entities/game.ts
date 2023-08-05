@@ -1,10 +1,12 @@
+import { ConflictException } from '@nestjs/common';
+import { CompletedMove } from '../dto';
 import { GameProcess } from '../process/game.process';
 import { Client } from './Client';
 import { Player } from './Player';
-import { FiguresCellState } from './game.entities';
+import { Board, Cell, Figure, FiguresCellState } from './game.entities';
 
 type Config = {
-  side: string;
+  side: 'w' | 'b' | 'rand';
   time: string;
   timeIncrement: string;
 };
@@ -28,34 +30,9 @@ export class Game {
       config: this.config,
     };
   }
-
-  constructor(player: Client, config: Config) {
-    this.id = Math.floor(Math.random() * 100000);
-
-    const side =
-      config.side === 'rand' ? (Math.random() > 0.5 ? 'w' : 'b') : config.side;
-
-    this.players = {
-      [player.id]: { ...player, side },
-    };
-    this.config = config;
-    this.isActive = false;
-  }
-
   getActualState(): FiguresCellState {
-    return this.process.state();
+    return this.process.state;
   }
-
-  addPlayer(player: Client) {
-    const pickedSide = Object.values(this.players)[0].side;
-    const side = pickedSide === 'w' ? 'b' : 'w';
-    this.players[player.id] = { ...player, side };
-  }
-
-  start() {
-    this.isActive = true;
-  }
-
   getInitedGameData(userId: string) {
     const { white, black } = this.getActualState();
     const boards = {
@@ -71,5 +48,39 @@ export class Game {
       timeIncrement: this.config.timeIncrement,
     };
     return payload;
+  }
+
+  constructor(player: Client, config: Config) {
+    this.id = Math.floor(Math.random() * 100000);
+
+    const side: 'w' | 'b' =
+      config.side === 'rand' ? (Math.random() > 0.5 ? 'w' : 'b') : config.side;
+
+    this.players = {
+      [player.id]: { ...player, side },
+    };
+    this.config = config;
+    this.isActive = false;
+  }
+
+  addPlayer(player: Client) {
+    const pickedSide = Object.values(this.players)[0].side;
+    const side = pickedSide === 'w' ? 'b' : 'w';
+    this.players[player.id] = { ...player, side };
+  }
+
+  makeTurn(playerId: string, figure: Figure, cell: Cell): CompletedMove {
+    const turnSide = this.process.turnSide;
+    const player = this.players[playerId];
+
+    if (player.side !== turnSide) {
+      throw new ConflictException('Not your turn');
+    }
+    const turnResult = this.process.makeTurn(figure, cell);
+    return turnResult;
+  }
+
+  start() {
+    this.isActive = true;
   }
 }

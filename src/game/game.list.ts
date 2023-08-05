@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Game } from './entities/game';
-import { Client } from './entities/Client';
+import { Client, Game } from './entities';
 
 @Injectable()
 export class GameList {

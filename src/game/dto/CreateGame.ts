@@ -8,7 +8,7 @@ enum Side {
 
 export class CreateGameDto {
   @IsEnum(Side)
-  side: string;
+  side: 'w' | 'b' | 'rand';
 
   @IsNumber()
   time: string;
