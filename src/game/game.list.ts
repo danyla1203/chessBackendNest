@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Game } from './game.entity';
+import { Game } from './entities/game';
+import { Client } from './entities/Client';
 
 @Injectable()
 export class GameList {
@@ -24,5 +25,10 @@ export class GameList {
     );
     this.games.push(this.lobby[index]);
     this.lobby.splice(index, 1);
+  }
+  public removeGameFromLobbyByPlayer(client: Client) {
+    this.lobby = this.lobby.filter((game) => {
+      return !(client.id in game.players);
+    });
   }
 }
