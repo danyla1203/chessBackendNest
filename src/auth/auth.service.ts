@@ -27,6 +27,14 @@ export class AuthService {
     return tokens;
   }
 
+  async createSession(id: number, deviceId: string) {
+    const tokens = await this.tokenService.getPair(id, deviceId);
+
+    await this.model.createSession(id, tokens.refresh, deviceId);
+
+    return tokens;
+  }
+
   async validateCreds(id: number, deviceId: string) {
     const auth = await this.model.findSessionByUserId(id, deviceId);
     if (!auth) throw new UnauthorizedException();
@@ -52,5 +60,8 @@ export class AuthService {
     await this.model.createSession(user.id, tokens.refresh, loginData.deviceId);
 
     return tokens;
+  }
+  async logout(id: number, deviceId: string) {
+    await this.model.deleteSessionByUserId(id, deviceId);
   }
 }

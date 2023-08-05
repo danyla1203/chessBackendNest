@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class AuthModel {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   public async findByEmail(email: string): Promise<User> {
     return this.prisma.user.findUnique({ where: { email } });
@@ -46,5 +46,8 @@ export class AuthModel {
       },
       where: { userId: id, deviceId },
     });
+  }
+  public deleteSessionByUserId(id: number, deviceId: string) {
+    return this.prisma.auth.deleteMany({ where: { userId: id, deviceId } });
   }
 }

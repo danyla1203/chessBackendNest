@@ -15,14 +15,12 @@ export class AuthGuard implements CanActivate {
     private readonly authService: AuthService,
   ) {}
 
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
+  async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
     const authorization = request.headers.authorization;
     try {
       const payload = this.jwtService.parseAuthHeader(authorization);
-      request.user = this.authService.validateCreds(
+      request.user = await this.authService.validateCreds(
         payload.id,
         payload.deviceId,
       );
