@@ -11,8 +11,8 @@ export class CreateGameDto {
   side: 'w' | 'b' | 'rand';
 
   @IsNumber()
-  time: string;
+  time: number;
 
   @IsNumber()
-  timeIncrement: string;
+  timeIncrement: number;
 }

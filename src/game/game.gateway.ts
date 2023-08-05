@@ -85,6 +85,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       player.emit('game:init-data', game.getInitedGameData(player.id));
     }
     this.server.to(`game:${game.id}`).emit('game:start');
+    game.start();
   }
 
   @SubscribeMessage('move')

@@ -8,6 +8,8 @@ export const PlayerSocket = createParamDecorator(
       name: socket.name,
       join: socket.join.bind(socket),
       emit: socket.emit.bind(socket),
+      toRoom: (room: string, event: string, data: any) =>
+        socket.to(room).emit(event, data),
     };
   },
 );
@@ -17,4 +19,5 @@ export type Client = {
   name: string;
   join: (room: string) => void;
   emit: (event: string, data: any) => void;
+  toRoom: (room: string, event: string, data: any) => void;
 };

@@ -528,8 +528,6 @@ export class GameProcess {
     const shah: null | ShahData = this.setShah(figure);
     const mate: null | MateData = this.setMate(figure);
 
-    this.store.setNextTurnSide();
-
     return {
       strike,
       mate,

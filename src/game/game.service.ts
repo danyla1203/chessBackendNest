@@ -25,7 +25,6 @@ export class GameService {
 
     game.addPlayer(player);
     this.list.removeGameFromLobby(gameId);
-    game.start();
 
     return game;
   }

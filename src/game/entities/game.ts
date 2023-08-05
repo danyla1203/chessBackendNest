@@ -3,12 +3,13 @@ import { CompletedMove } from '../dto';
 import { GameProcess } from '../process/game.process';
 import { Client } from './Client';
 import { Player } from './Player';
-import { Board, Cell, Figure, FiguresCellState } from './game.entities';
+import { Cell, Figure, FiguresCellState } from './game.entities';
+import { time } from 'console';
 
 type Config = {
   side: 'w' | 'b' | 'rand';
-  time: string;
-  timeIncrement: string;
+  time: number;
+  timeIncrement: number;
 };
 type GameData = {
   id: number;
@@ -57,7 +58,7 @@ export class Game {
       config.side === 'rand' ? (Math.random() > 0.5 ? 'w' : 'b') : config.side;
 
     this.players = {
-      [player.id]: { ...player, side },
+      [player.id]: { ...player, side, time: config.time },
     };
     this.config = config;
     this.isActive = false;
@@ -66,7 +67,7 @@ export class Game {
   addPlayer(player: Client) {
     const pickedSide = Object.values(this.players)[0].side;
     const side = pickedSide === 'w' ? 'b' : 'w';
-    this.players[player.id] = { ...player, side };
+    this.players[player.id] = { ...player, side, time: this.config.time };
   }
 
   makeTurn(playerId: string, figure: Figure, cell: Cell): CompletedMove {
@@ -77,10 +78,36 @@ export class Game {
       throw new ConflictException('Not your turn');
     }
     const turnResult = this.process.makeTurn(figure, cell);
+
+    clearInterval(player.intervalLabel);
+    player.time += this.config.timeIncrement;
+
+    const nextPlayer = Object.values(this.players).find(
+      (player) => player.id !== playerId,
+    );
+    nextPlayer.intervalLabel = setInterval(() => {
+      nextPlayer.time -= 1000;
+      nextPlayer.emit('game:time', nextPlayer.time);
+      player.emit('game:time', '0');
+    }, 1000);
+
+    this.process.store.setNextTurnSide();
     return turnResult;
   }
 
   start() {
     this.isActive = true;
+    const whitePlayer = Object.values(this.players).find(
+      (player) => player.side === 'w',
+    );
+    const blackPlayer = Object.values(this.players).find(
+      (player) => player.side === 'b',
+    );
+
+    whitePlayer.intervalLabel = setInterval(() => {
+      whitePlayer.time -= 1000;
+      whitePlayer.emit('game:time', whitePlayer.time);
+      blackPlayer.emit('game:time', '0');
+    }, 1000);
   }
 }
