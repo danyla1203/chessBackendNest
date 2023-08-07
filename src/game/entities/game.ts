@@ -4,7 +4,6 @@ import { GameProcess } from '../process/game.process';
 import { Client } from './Client';
 import { Player } from './Player';
 import { Cell, Figure, FiguresCellState } from './game.entities';
-import { time } from 'console';
 
 type Config = {
   side: 'w' | 'b' | 'rand';
@@ -70,7 +69,36 @@ export class Game {
     this.players[player.id] = { ...player, side, time: this.config.time };
   }
 
+  endGame(winner: Player, looser: Player) {
+    clearInterval(winner.intervalLabel);
+    clearInterval(looser.intervalLabel);
+    this.isActive = false;
+    winner.emit('game:end', { winner: true });
+    looser.emit('game:end', { winner: false });
+  }
+
+  changeTickingSide(next: Player, old: Player) {
+    clearInterval(old.intervalLabel);
+
+    const white = next.side === 'w' ? next : old;
+    const black = next.side === 'b' ? next : old;
+
+    old.time += this.config.timeIncrement;
+    old.emit('game:time', { w: white.time, b: black.time });
+
+    next.intervalLabel = setInterval(() => {
+      next.time -= 1000;
+      if (next.time <= 0) {
+        this.endGame(old, next);
+      }
+      next.emit('game:time', { w: white.time, b: black.time });
+      old.emit('game:time', { w: white.time, b: black.time });
+    }, 1000);
+  }
+
   makeTurn(playerId: string, figure: Figure, cell: Cell): CompletedMove {
+    if (!this.isActive) throw new ConflictException('Game is inactive');
+
     const turnSide = this.process.turnSide;
     const player = this.players[playerId];
 
@@ -79,17 +107,10 @@ export class Game {
     }
     const turnResult = this.process.makeTurn(figure, cell);
 
-    clearInterval(player.intervalLabel);
-    player.time += this.config.timeIncrement;
-
     const nextPlayer = Object.values(this.players).find(
       (player) => player.id !== playerId,
     );
-    nextPlayer.intervalLabel = setInterval(() => {
-      nextPlayer.time -= 1000;
-      nextPlayer.emit('game:time', nextPlayer.time);
-      player.emit('game:time', '0');
-    }, 1000);
+    this.changeTickingSide(nextPlayer, player);
 
     this.process.store.setNextTurnSide();
     return turnResult;
@@ -103,11 +124,7 @@ export class Game {
     const blackPlayer = Object.values(this.players).find(
       (player) => player.side === 'b',
     );
-
-    whitePlayer.intervalLabel = setInterval(() => {
-      whitePlayer.time -= 1000;
-      whitePlayer.emit('game:time', whitePlayer.time);
-      blackPlayer.emit('game:time', '0');
-    }, 1000);
+    blackPlayer.time -= this.config.timeIncrement;
+    this.changeTickingSide(whitePlayer, blackPlayer);
   }
 }
