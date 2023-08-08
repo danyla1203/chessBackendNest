@@ -6,8 +6,32 @@ import { PrismaService } from '../prisma.service';
 export class AuthModel {
   constructor(private readonly prisma: PrismaService) {}
 
-  public async findByEmail(email: string): Promise<User> {
+  public async findUserByEmail(email: string): Promise<User> {
     return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  public async findConfirmation(email: string) {
+    return this.prisma.confirmations.findUnique({ where: { email } });
+  }
+  public async changeConfirmationCode(id: number, code: number) {
+    return this.prisma.confirmations.update({
+      where: { id },
+      data: { code: code + '' },
+    });
+  }
+  public async confirmConfirmation(email: string) {
+    return this.prisma.confirmations.update({
+      where: { email },
+      data: { isConfirmed: true },
+    });
+  }
+  public createConfirmation(code: number, email: string) {
+    return this.prisma.confirmations.create({
+      data: {
+        code: code + '',
+        email,
+      },
+    });
   }
 
   public createSession(

@@ -32,4 +32,15 @@ export class AuthController {
     await this.authService.logout(req.user.id, req.user.deviceId);
     return { message: 'ok' };
   }
+
+  @Post('send-verification-mail')
+  sendVerificationMail(@Body() { email }: { email: string }) {
+    return this.authService.sendVerificationMail(email);
+  }
+  @Post('verify-email')
+  sendVerificationCode(
+    @Body() { code, email }: { code: string; email: string },
+  ) {
+    return this.authService.verifyEmail(code, email);
+  }
 }
