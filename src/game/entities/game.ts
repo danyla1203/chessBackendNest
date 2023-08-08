@@ -4,6 +4,7 @@ import { GameProcess } from '../process/game.process';
 import { Client } from './Client';
 import { Player } from './Player';
 import { Cell, Figure, FiguresCellState } from './game.entities';
+import { GameChat } from './game.chat';
 
 type Config = {
   side: 'w' | 'b' | 'rand';
@@ -22,6 +23,7 @@ export class Game {
   config: Config;
   isActive: boolean;
   process: GameProcess = new GameProcess();
+  chat: GameChat = new GameChat();
 
   getGameData(): GameData {
     return {

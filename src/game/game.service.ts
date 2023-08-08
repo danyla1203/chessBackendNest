@@ -6,6 +6,7 @@ import {
 import { CreateGameDto } from './dto';
 import { GameList } from './game.list';
 import { Game, Client, FiguresCellState } from './entities';
+import { Player } from './entities/Player';
 
 @Injectable()
 export class GameService {
@@ -59,5 +60,9 @@ export class GameService {
     }
 
     return plainObj;
+  }
+
+  public pushMessage(game: Game, message: string, player: Player) {
+    return game.chat.addMessage(message, player);
   }
 }

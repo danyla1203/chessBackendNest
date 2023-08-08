@@ -25,6 +25,8 @@ import {
 } from './dto';
 import { Client, PlayerSocket } from './entities';
 import { IsPlayer } from './guards/isplayer.guard';
+import { ChatMessage } from './dto/ChatMessage';
+import { Player } from './entities/Player';
 
 @WebSocketGateway({ namespace: 'game', cors: true, transports: ['websocket'] })
 @UsePipes(new ValidationPipe())
@@ -107,5 +109,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (mate) this.server.to(`game:${game.id}`).emit('game:mate', mate);
     if (strike) this.server.to(`game:${game.id}`).emit('game:strike', strike);
     this.server.to(`game:${game.id}`).emit('game:board-update', actualState);
+  }
+
+  @SubscribeMessage('chat-message')
+  @UseGuards(IsPlayer)
+  chatMessage(
+    @PlayerSocket() player: Player,
+    @MessageBody() { gameId, text }: ChatMessage,
+  ) {
+    const game = this.service.findGameById(gameId);
+    const message = this.service.pushMessage(game, text, player);
+    this.server.to(`game:${game.id}`).emit('game:chat-message', message);
   }
 }
