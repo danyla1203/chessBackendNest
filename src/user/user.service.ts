@@ -15,8 +15,15 @@ export class UserService {
     const confirmation = await this.model.findConfirmation(createUserDto.email);
     if (!confirmation) throw new ConflictException('Confirm email first');
 
-    const user = await this.model.createUser(createUserDto);
-    return this.authService.createSession(user.id, createUserDto.deviceId);
+    const user = await this.model.findProfileByEmail(createUserDto.email);
+    if (user) throw new ConflictException('User already exists');
+
+    const userRecord = await this.model.createUser(createUserDto);
+
+    return this.authService.createSession(
+      userRecord.id,
+      createUserDto.deviceId,
+    );
   }
 
   profile(id: number) {

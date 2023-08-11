@@ -43,4 +43,8 @@ export class AuthController {
   ) {
     return this.authService.verifyEmail(code, email);
   }
+  @Post('/google/oauth')
+  googleOAuth(@Body() { code }: { code: string }) {
+    return this.authService.googleOAuth(code);
+  }
 }

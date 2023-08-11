@@ -25,11 +25,12 @@ export class AuthModel {
       data: { isConfirmed: true },
     });
   }
-  public createConfirmation(code: number, email: string) {
+  public createConfirmation(code: number, email: string, isConfirmed = false) {
     return this.prisma.confirmations.create({
       data: {
         code: code + '',
         email,
+        isConfirmed,
       },
     });
   }

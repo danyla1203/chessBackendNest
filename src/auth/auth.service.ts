@@ -97,4 +97,25 @@ export class AuthService {
   async logout(id: number, deviceId: string) {
     await this.model.deleteSessionByUserId(id, deviceId);
   }
+
+  async googleOAuth(code: string) {
+    const { email } = await this.tokenService.getGoogleUser(code);
+    const user = await this.model.findUserByEmail(email);
+    if (!user) {
+      const confirmation = await this.model.findConfirmation(email);
+      if (!confirmation) await this.model.createConfirmation(-1, email, true);
+      return { message: 'ok', email };
+    } else {
+      const tokens = await this.tokenService.getPair(
+        user.id,
+        'google-' + user.id,
+      );
+      await this.model.createSession(
+        user.id,
+        tokens.refresh,
+        'google-' + user.id,
+      );
+      return tokens;
+    }
+  }
 }

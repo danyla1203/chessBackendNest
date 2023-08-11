@@ -15,7 +15,11 @@ export class UserModel {
   createUser(user: CreateUserDto) {
     return this.prisma.user.create({
       select: userFields,
-      data: user,
+      data: {
+        name: user.name,
+        email: user.email,
+        password: user.password,
+      },
     });
   }
 
@@ -27,6 +31,12 @@ export class UserModel {
     return this.prisma.user.findUnique({
       select: userFields,
       where: { id },
+    });
+  }
+  findProfileByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      select: userFields,
+      where: { email },
     });
   }
 

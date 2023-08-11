@@ -1,10 +1,22 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
+import { google } from 'googleapis';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TokenService {
-  constructor(private readonly jwt: JwtService) {}
+  oauthGoogle: any;
+  constructor(
+    private readonly jwt: JwtService,
+    private readonly config: ConfigService,
+  ) {
+    const clId = config.get('GOOGLE_CLIENT_ID');
+    const secret = config.get('GOOGLE_SECRET');
+    const redirect = config.get('GOOGLE_REDIRECT_URL');
+    console.log(clId, secret, redirect);
+    this.oauthGoogle = new google.auth.OAuth2(clId, secret, redirect);
+  }
 
   public parseAuthHeader(header?: string) {
     if (!header) throw new BadRequestException('Provide authorization');
@@ -27,5 +39,15 @@ export class TokenService {
       { secret: jwtConstants.secret, expiresIn: '30d' },
     );
     return { access, refresh };
+  }
+  public async getGoogleUser(code: string) {
+    const { tokens } = await this.oauthGoogle.getToken(code);
+    this.oauthGoogle.setCredentials(tokens);
+    const oauth2 = google.oauth2({
+      auth: this.oauthGoogle,
+      version: 'v2',
+    });
+    const { data } = await oauth2.userinfo.get();
+    return data;
   }
 }
