@@ -14,8 +14,16 @@ export class TokenService {
     const clId = config.get('GOOGLE_CLIENT_ID');
     const secret = config.get('GOOGLE_SECRET');
     const redirect = config.get('GOOGLE_REDIRECT_URL');
-    console.log(clId, secret, redirect);
+
     this.oauthGoogle = new google.auth.OAuth2(clId, secret, redirect);
+  }
+
+  public parseToken(token: string) {
+    try {
+      return this.jwt.verify(token);
+    } catch (e) {
+      throw new BadRequestException('Invalid token');
+    }
   }
 
   public parseAuthHeader(header?: string) {
@@ -23,11 +31,7 @@ export class TokenService {
 
     const [_, token] = header.split(' ');
     if (!token) throw new BadRequestException('Provide token');
-    try {
-      return this.jwt.verify(token);
-    } catch (e) {
-      throw new BadRequestException('Invalid token');
-    }
+    return this.parseToken(token);
   }
   public async getPair(id: number, deviceId: string) {
     const access = await this.jwt.signAsync(
