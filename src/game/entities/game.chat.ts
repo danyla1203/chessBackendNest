@@ -1,4 +1,4 @@
-import { Player } from './Player';
+import { Client } from './Client';
 
 export type Message = {
   id: number;
@@ -13,7 +13,7 @@ export type Message = {
 export class GameChat {
   messages: Message[] = [];
 
-  addMessage(message: string, { id, name }: Player) {
+  addMessage(message: string, { id, name }: Client) {
     const messageObj = {
       id: Math.floor(Math.random() * 100000),
       text: message,

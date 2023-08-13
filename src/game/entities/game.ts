@@ -25,6 +25,11 @@ export class Game {
   process: GameProcess = new GameProcess();
   chat: GameChat = new GameChat();
 
+  draw: {
+    w: boolean;
+    b: boolean;
+  };
+
   getGameData(): GameData {
     return {
       id: this.id,
@@ -63,6 +68,7 @@ export class Game {
     };
     this.config = config;
     this.isActive = false;
+    this.draw = { w: false, b: false };
   }
 
   addPlayer(player: Client) {
@@ -77,6 +83,23 @@ export class Game {
     this.isActive = false;
     winner.emit('game:end', { winner: true });
     looser.emit('game:end', { winner: false });
+  }
+  endGameByDraw() {
+    const [pl1, pl2] = Object.values(this.players);
+    clearInterval(pl1.intervalLabel);
+    clearInterval(pl2.intervalLabel);
+    this.isActive = false;
+  }
+  setDrawPurpose({ side }: Player) {
+    console.log(side);
+    this.draw[side] = true;
+  }
+  rejectDraw() {
+    this.draw = { w: false, b: false };
+  }
+
+  addTime(target: Player, inc) {
+    this.players[target.id].time += inc;
   }
 
   changeTickingSide(next: Player, old: Player) {

@@ -26,7 +26,6 @@ import {
 import { Client, PlayerSocket } from './entities';
 import { IsPlayer } from './guards/isplayer.guard';
 import { ChatMessage } from './dto/ChatMessage';
-import { Player } from './entities/Player';
 
 @WebSocketGateway({ namespace: 'game', cors: true, transports: ['websocket'] })
 @UsePipes(new ValidationPipe())
@@ -114,11 +113,60 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('chat-message')
   @UseGuards(IsPlayer)
   chatMessage(
-    @PlayerSocket() player: Player,
+    @PlayerSocket() player: Client,
     @MessageBody() { gameId, text }: ChatMessage,
   ) {
     const game = this.service.findGameById(gameId);
     const message = this.service.pushMessage(game, text, player);
     this.server.to(`game:${game.id}`).emit('game:chat-message', message);
+  }
+
+  @SubscribeMessage('surrender')
+  @UseGuards(IsPlayer)
+  surrender(
+    @PlayerSocket() player: Client,
+    @MessageBody() { gameId }: { gameId: number },
+  ) {
+    const { game, winner, looser } = this.service.surrender(gameId, player);
+    this.server
+      .to(`game:${game.id}`)
+      .emit('game:surrender', { winner, looser });
+  }
+
+  @SubscribeMessage('draw_purpose')
+  @UseGuards(IsPlayer)
+  drawPurpose(
+    @PlayerSocket() player: Client,
+    @MessageBody() { gameId }: { gameId: number },
+  ) {
+    const purpose = this.service.purposeDraw(gameId, player);
+    player.toRoom(`game:${gameId}`, 'game:draw_purpose', purpose);
+  }
+
+  @SubscribeMessage('draw_accept')
+  @UseGuards(IsPlayer)
+  acceptPurpose(
+    @PlayerSocket() player: Client,
+    @MessageBody() { gameId }: { gameId: number },
+  ) {
+    this.service.acceptDraw(gameId, player);
+    this.server.to(`game:${gameId}`).emit('game:draw');
+  }
+
+  @SubscribeMessage('draw_reject')
+  @UseGuards(IsPlayer)
+  rejectPurpose(@MessageBody() { gameId }: { gameId: number }) {
+    const result = this.service.rejectDraw(gameId);
+    this.server.to(`game:${gameId}`).emit('game:draw_rejected', result);
+  }
+
+  @SubscribeMessage('add_time')
+  @UseGuards(IsPlayer)
+  addTime(
+    @PlayerSocket() player: Client,
+    @MessageBody() { gameId }: { gameId: number },
+  ) {
+    const result = this.service.addTime(gameId, player);
+    this.server.to(`game:${gameId}`).emit('game:time', result);
   }
 }

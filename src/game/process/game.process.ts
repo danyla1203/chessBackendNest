@@ -424,7 +424,7 @@ export class GameProcess {
 
   isStrikeAfterMove(cell: Cell): null | StrikedData {
     const { opponent } = this.board;
-    const opSide = this.turnSide;
+    const opSide = this.getOpponentSide();
     for (const [figure, fCell] of opponent) {
       if (fCell === cell) return { strikedSide: opSide, figure };
     }
