@@ -6,7 +6,6 @@ import {
 import { CreateGameDto } from './dto';
 import { GameList } from './game.list';
 import { Game, Client, FiguresCellState } from './entities';
-import { Player } from './entities/Player';
 
 @Injectable()
 export class GameService {
