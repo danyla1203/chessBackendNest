@@ -6,15 +6,28 @@ import { Player } from './Player';
 import { Cell, Figure, FiguresCellState } from './game.entities';
 import { GameChat } from './game.chat';
 
-type Config = {
+export type Config = {
   side: 'w' | 'b' | 'rand';
   time: number;
   timeIncrement: number;
 };
-type GameData = {
+
+export type GameData = {
   id: number;
   players: { [k: string]: Player };
   config: Config;
+};
+type GameResult = {
+  id: number;
+  config: Config;
+};
+export type GameWithWinner = GameResult & {
+  winner: Player;
+  looser: Player;
+};
+export type DrawGame = GameResult & {
+  pl1: Player;
+  pl2: Player;
 };
 
 export class Game {
@@ -24,6 +37,14 @@ export class Game {
   isActive: boolean;
   process: GameProcess = new GameProcess();
   chat: GameChat = new GameChat();
+  winner: null | Player = null;
+  looser: null | Player = null;
+  saveDraw: (pl1: Player, pl2: Player, drawData: DrawGame) => Promise<void>;
+  saveGameWithWinner: (
+    winner: Player,
+    looser: Player,
+    winnerData: GameWithWinner,
+  ) => Promise<void>;
 
   draw: {
     w: boolean;
@@ -37,6 +58,25 @@ export class Game {
       config: this.config,
     };
   }
+
+  getDrawData(): DrawGame {
+    const players = Object.values(this.players);
+    return {
+      id: this.id,
+      config: this.config,
+      pl1: players[0],
+      pl2: players[1],
+    };
+  }
+  getWinnerData(): GameWithWinner {
+    return {
+      id: this.id,
+      config: this.config,
+      winner: this.winner,
+      looser: this.looser,
+    };
+  }
+
   getActualState(): FiguresCellState {
     return this.process.state;
   }
@@ -57,7 +97,9 @@ export class Game {
     return payload;
   }
 
-  constructor(player: Client, config: Config) {
+  constructor(player: Client, config: Config, saveDraw, saveGameWithWinner) {
+    this.saveDraw = saveDraw;
+    this.saveGameWithWinner = saveGameWithWinner;
     this.id = Math.floor(Math.random() * 100000);
 
     const side: 'w' | 'b' =
@@ -77,21 +119,24 @@ export class Game {
     this.players[player.id] = { ...player, side, time: this.config.time };
   }
 
-  endGame(winner: Player, looser: Player) {
+  async endGame(winner: Player, looser: Player) {
     clearInterval(winner.intervalLabel);
     clearInterval(looser.intervalLabel);
     this.isActive = false;
+    this.winner = winner;
+    this.looser = looser;
     winner.emit('game:end', { winner: true });
     looser.emit('game:end', { winner: false });
+    await this.saveGameWithWinner(winner, looser, this.getWinnerData());
   }
-  endGameByDraw() {
+  async endGameByDraw() {
     const [pl1, pl2] = Object.values(this.players);
     clearInterval(pl1.intervalLabel);
     clearInterval(pl2.intervalLabel);
     this.isActive = false;
+    await this.saveDraw(pl1, pl2, this.getDrawData());
   }
   setDrawPurpose({ side }: Player) {
-    console.log(side);
     this.draw[side] = true;
   }
   rejectDraw() {
@@ -111,10 +156,10 @@ export class Game {
     old.time += this.config.timeIncrement;
     old.emit('game:time', { w: white.time, b: black.time });
 
-    next.intervalLabel = setInterval(() => {
+    next.intervalLabel = setInterval(async () => {
       next.time -= 1000;
       if (next.time <= 0) {
-        this.endGame(old, next);
+        await this.endGame(old, next);
       }
       next.emit('game:time', { w: white.time, b: black.time });
       old.emit('game:time', { w: white.time, b: black.time });

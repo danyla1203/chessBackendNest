@@ -6,13 +6,38 @@ import {
 import { CreateGameDto } from './dto';
 import { GameList } from './game.list';
 import { Game, Client, FiguresCellState } from './entities';
+import { GameModel } from './model';
+import { Player } from './entities/Player';
+import { DrawGame, GameWithWinner } from './entities/game';
 
 @Injectable()
 export class GameService {
-  constructor(private readonly list: GameList) {}
+  constructor(
+    private readonly list: GameList,
+    private readonly model: GameModel,
+  ) {}
 
   public createGame(player: Client, config: CreateGameDto) {
-    const newGame = new Game(player, config);
+    const saveDraw = async (pl1: Player, pl2: Player, drawData: DrawGame) => {
+      if (pl1.authorized && pl2.authorized) {
+        await this.model.saveDraw(drawData);
+      }
+    };
+    const saveGameWithWinner = async (
+      winner: Player,
+      looser: Player,
+      winnerData: GameWithWinner,
+    ) => {
+      if (winner.authorized && looser.authorized) {
+        await this.model.saveGameWithWinner(winnerData);
+      }
+    };
+    const newGame = new Game(
+      player,
+      config,
+      saveDraw.bind(this),
+      saveGameWithWinner.bind(this),
+    );
     this.list.addGameToLobby(newGame);
     return newGame;
   }
@@ -65,13 +90,13 @@ export class GameService {
     return game.chat.addMessage(message, player);
   }
 
-  public surrender(gameId: number, client: Client) {
+  public async surrender(gameId: number, client: Client) {
     const game = this.findGameById(gameId);
     const winner = Object.values(game.players).find(
       (pl) => pl.id !== client.id,
     );
     const player = game.players[client.id];
-    game.endGame(winner, player);
+    await game.endGame(winner, player);
     return { game, winner, looser: player };
   }
 
@@ -88,7 +113,10 @@ export class GameService {
     return purpose;
   }
 
-  public acceptDraw(gameId: number, client: Client): { w: true; b: true } {
+  public async acceptDraw(
+    gameId: number,
+    client: Client,
+  ): Promise<{ w: true; b: true }> {
     const game = this.findGameById(gameId);
     const draw = game.draw;
     const player = game.players[client.id];
@@ -97,7 +125,8 @@ export class GameService {
     if (!draw.w && !draw.b) throw new ConflictException('Draw purpose not set');
 
     game.setDrawPurpose(player);
-    game.endGameByDraw();
+    await game.endGameByDraw();
+
     return { w: true, b: true };
   }
 

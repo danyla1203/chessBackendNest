@@ -48,13 +48,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(client) {
     const authToken = client.handshake.query['Authorization'];
+    client.authorized = false;
     try {
       const payload = await this.tokensService.parseToken(authToken);
-      const { name } = await this.authService.validateCreds(
+      const { name, id } = await this.authService.validateCreds(
         payload.id,
         payload.deviceId,
       );
       client.name = name;
+      client.authorized = true;
+      client.userId = id;
     } catch (e) {
       client.name = 'Anonymous';
     }
@@ -123,11 +126,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('surrender')
   @UseGuards(IsPlayer)
-  surrender(
+  async surrender(
     @PlayerSocket() player: Client,
     @MessageBody() { gameId }: { gameId: number },
   ) {
-    const { game, winner, looser } = this.service.surrender(gameId, player);
+    const { game, winner, looser } = await this.service.surrender(
+      gameId,
+      player,
+    );
     this.server
       .to(`game:${game.id}`)
       .emit('game:surrender', { winner, looser });
@@ -145,11 +151,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('draw_accept')
   @UseGuards(IsPlayer)
-  acceptPurpose(
+  async acceptPurpose(
     @PlayerSocket() player: Client,
     @MessageBody() { gameId }: { gameId: number },
   ) {
-    this.service.acceptDraw(gameId, player);
+    await this.service.acceptDraw(gameId, player);
     this.server.to(`game:${gameId}`).emit('game:draw');
   }
 
