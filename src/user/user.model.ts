@@ -55,6 +55,7 @@ export class UserModel {
         maxTime: true,
         timeIncrement: true,
         sideSelecting: true,
+        isDraw: true,
         players: {
           select: {
             userId: true,
