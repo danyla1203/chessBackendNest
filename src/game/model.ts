@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { DrawGame, GameWithWinner } from './entities/game';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class GameModel {
   constructor(private readonly prisma: PrismaService) {}
 
-  public saveDraw({ config, pl1, pl2 }: DrawGame) {
+  public saveDraw({ config, pl1, pl2, moves }: DrawGame) {
+    const jsonMoves = moves as unknown as Prisma.JsonArray;
     return this.prisma.game.create({
       data: {
         isDraw: true,
         maxTime: config.time,
         timeIncrement: config.timeIncrement,
         sideSelecting: config.side,
+        moves: jsonMoves,
         players: {
           create: [
             {
@@ -30,13 +33,15 @@ export class GameModel {
       },
     });
   }
-  public saveGameWithWinner({ config, winner, looser }: GameWithWinner) {
+  public saveGameWithWinner({ config, winner, looser, moves }: GameWithWinner) {
+    const jsonMoves = moves as unknown as Prisma.JsonArray;
     return this.prisma.game.create({
       data: {
         isDraw: false,
         maxTime: config.time,
         timeIncrement: config.timeIncrement,
         sideSelecting: config.side,
+        moves: jsonMoves,
         players: {
           create: [
             {

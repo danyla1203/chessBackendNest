@@ -428,6 +428,7 @@ export class GameProcess {
     for (const [figure, fCell] of opponent) {
       if (fCell === cell) return { strikedSide: opSide, figure };
     }
+    return null;
   }
   isShahRemainsAfterMove(figure: Figure, cell: Cell): boolean {
     const shah = this.store.shah;

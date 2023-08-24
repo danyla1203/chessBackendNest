@@ -30,6 +30,7 @@ model Game {
   sideSelecting String @db.VarChar
   isDraw        Boolean
   players       UserInGame[]
+  moves         Json
 }
 
 model UserInGame {

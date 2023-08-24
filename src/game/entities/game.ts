@@ -1,5 +1,5 @@
 import { ConflictException } from '@nestjs/common';
-import { CompletedMove } from '../dto';
+import { CompletedMove, MateData, ShahData, StrikedData } from '../dto';
 import { GameProcess } from '../process/game.process';
 import { Client } from './Client';
 import { Player } from './Player';
@@ -20,6 +20,7 @@ export type GameData = {
 type GameResult = {
   id: number;
   config: Config;
+  moves: Move[];
 };
 export type GameWithWinner = GameResult & {
   winner: Player;
@@ -30,26 +31,36 @@ export type DrawGame = GameResult & {
   pl2: Player;
 };
 
+export type Move = {
+  side: 'w' | 'b';
+  figure: Figure;
+  from: Cell;
+  to: Cell;
+  strikedData?: StrikedData;
+  shahData?: ShahData;
+  mateData?: MateData;
+};
+
 export class Game {
   id: number;
+  isActive = false;
   players: { [k: string]: Player };
   config: Config;
-  isActive: boolean;
   process: GameProcess = new GameProcess();
   chat: GameChat = new GameChat();
+  moves: Move[] = [];
   winner: null | Player = null;
   looser: null | Player = null;
+  draw: {
+    w: boolean;
+    b: boolean;
+  } = { w: false, b: false };
   saveDraw: (pl1: Player, pl2: Player, drawData: DrawGame) => Promise<void>;
   saveGameWithWinner: (
     winner: Player,
     looser: Player,
     winnerData: GameWithWinner,
   ) => Promise<void>;
-
-  draw: {
-    w: boolean;
-    b: boolean;
-  };
 
   getGameData(): GameData {
     return {
@@ -64,6 +75,7 @@ export class Game {
     return {
       id: this.id,
       config: this.config,
+      moves: this.moves,
       pl1: players[0],
       pl2: players[1],
     };
@@ -71,6 +83,7 @@ export class Game {
   getWinnerData(): GameWithWinner {
     return {
       id: this.id,
+      moves: this.moves,
       config: this.config,
       winner: this.winner,
       looser: this.looser,
@@ -109,8 +122,6 @@ export class Game {
       [player.id]: { ...player, side, time: config.time },
     };
     this.config = config;
-    this.isActive = false;
-    this.draw = { w: false, b: false };
   }
 
   addPlayer(player: Client) {
@@ -166,6 +177,21 @@ export class Game {
     }, 1000);
   }
 
+  private saveMove(
+    figure: Figure,
+    to: Cell,
+    from: Cell,
+    completedMove: CompletedMove,
+  ) {
+    this.moves.push({
+      side: this.process.turnSide,
+      figure,
+      from,
+      to,
+      ...completedMove,
+    });
+  }
+
   makeTurn(playerId: string, figure: Figure, cell: Cell): CompletedMove {
     if (!this.isActive) throw new ConflictException('Game is inactive');
 
@@ -175,6 +201,7 @@ export class Game {
     if (player.side !== turnSide) {
       throw new ConflictException('Not your turn');
     }
+    const from: Cell = this.process.board.board.get(figure);
     const turnResult = this.process.makeTurn(figure, cell);
 
     const nextPlayer = Object.values(this.players).find(
@@ -182,6 +209,7 @@ export class Game {
     );
     this.changeTickingSide(nextPlayer, player);
 
+    this.saveMove(figure, cell, from, turnResult);
     this.process.store.setNextTurnSide();
     return turnResult;
   }
