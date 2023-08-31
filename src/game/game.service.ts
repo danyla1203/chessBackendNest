@@ -45,8 +45,10 @@ export class GameService {
   public connectToGame(player: Client, gameId: number) {
     const game = this.list.findInLobby(gameId);
     if (!game) throw new NotFoundException('Game not found');
-    if (player.id in game.players)
-      throw new ConflictException('You are already in this game');
+    const pl1 = Object.values(game.players)[0];
+    if (player.userId && pl1.userId === player.userId) {
+      throw new ConflictException('Couldn"t join');
+    }
 
     game.addPlayer(player);
     this.list.removeGameFromLobby(gameId);
