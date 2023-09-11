@@ -14,7 +14,7 @@ export type Config = {
 
 export type GameData = {
   id: number;
-  players: { [k: string]: Player };
+  players: Player[];
   config: Config;
 };
 type GameResult = {
@@ -44,7 +44,7 @@ export type Move = {
 export class Game {
   id: number;
   isActive = false;
-  players: { [k: string]: Player };
+  players: Player[];
   config: Config;
   process: GameProcess = new GameProcess();
   chat: GameChat = new GameChat();
@@ -71,13 +71,12 @@ export class Game {
   }
 
   getDrawData(): DrawGame {
-    const players = Object.values(this.players);
     return {
       id: this.id,
       config: this.config,
       moves: this.moves,
-      pl1: players[0],
-      pl2: players[1],
+      pl1: this.players[0],
+      pl2: this.players[1],
     };
   }
   getWinnerData(): GameWithWinner {
@@ -103,7 +102,7 @@ export class Game {
     const payload: any = {
       board: boards,
       gameId: this.id,
-      side: this.players[userId].side,
+      side: this.players.find((pl) => pl.id === userId).side,
       maxTime: this.config.time,
       timeIncrement: this.config.timeIncrement,
     };
@@ -118,16 +117,14 @@ export class Game {
     const side: 'w' | 'b' =
       config.side === 'rand' ? (Math.random() > 0.5 ? 'w' : 'b') : config.side;
 
-    this.players = {
-      [player.id]: { ...player, side, time: config.time },
-    };
+    this.players = [{ ...player, side, time: config.time }];
     this.config = config;
   }
 
   addPlayer(player: Client) {
-    const pickedSide = Object.values(this.players)[0].side;
+    const pickedSide = this.players[0].side;
     const side = pickedSide === 'w' ? 'b' : 'w';
-    this.players[player.id] = { ...player, side, time: this.config.time };
+    this.players.push({ ...player, side, time: this.config.time });
   }
 
   async endGame(winner: Player, looser: Player) {
@@ -141,7 +138,7 @@ export class Game {
     await this.saveGameWithWinner(winner, looser, this.getWinnerData());
   }
   async endGameByDraw() {
-    const [pl1, pl2] = Object.values(this.players);
+    const [pl1, pl2] = this.players;
     clearInterval(pl1.intervalLabel);
     clearInterval(pl2.intervalLabel);
     this.isActive = false;
@@ -155,7 +152,7 @@ export class Game {
   }
 
   addTime(target: Player, inc) {
-    this.players[target.id].time += inc;
+    this.players.find((pl) => pl.id === target.id).time += inc;
   }
 
   changeTickingSide(next: Player, old: Player) {
@@ -196,7 +193,8 @@ export class Game {
     if (!this.isActive) throw new ConflictException('Game is inactive');
 
     const turnSide = this.process.turnSide;
-    const player = this.players[playerId];
+    const player =
+      this.players[0].id === playerId ? this.players[0] : this.players[1];
 
     if (player.side !== turnSide) {
       throw new ConflictException('Not your turn');
@@ -204,9 +202,7 @@ export class Game {
     const from: Cell = this.process.board.board.get(figure);
     const turnResult = this.process.makeTurn(figure, cell);
 
-    const nextPlayer = Object.values(this.players).find(
-      (player) => player.id !== playerId,
-    );
+    const nextPlayer = this.players.find((player) => player.id !== playerId);
     this.changeTickingSide(nextPlayer, player);
 
     this.saveMove(figure, cell, from, turnResult);
@@ -216,12 +212,8 @@ export class Game {
 
   start() {
     this.isActive = true;
-    const whitePlayer = Object.values(this.players).find(
-      (player) => player.side === 'w',
-    );
-    const blackPlayer = Object.values(this.players).find(
-      (player) => player.side === 'b',
-    );
+    const whitePlayer = this.players.find((player) => player.side === 'w');
+    const blackPlayer = this.players.find((player) => player.side === 'b');
     blackPlayer.time -= this.config.timeIncrement;
     this.changeTickingSide(whitePlayer, blackPlayer);
   }

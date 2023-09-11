@@ -14,7 +14,7 @@ export class IsPlayer implements CanActivate {
     const gameId = wsContext.getData().gameId;
 
     const game = this.service.findGameById(gameId);
-    if (client.id in game.players) return true;
-    return false;
+
+    return !!game.players.find((pl) => pl.id === client.id);
   }
 }
