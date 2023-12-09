@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Auth, User } from '@prisma/client';
+import { Auth, Confirmations, User } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 
 @Injectable()
@@ -10,22 +10,29 @@ export class AuthModel {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
-  public async findConfirmation(email: string) {
+  public async findConfirmation(email: string): Promise<Confirmations> {
     return this.prisma.confirmations.findUnique({ where: { email } });
   }
-  public async changeConfirmationCode(id: number, code: number) {
+  public async changeConfirmationCode(
+    id: number,
+    code: number,
+  ): Promise<Confirmations> {
     return this.prisma.confirmations.update({
       where: { id },
       data: { code: code + '' },
     });
   }
-  public async confirmConfirmation(email: string) {
+  public async confirmConfirmation(email: string): Promise<Confirmations> {
     return this.prisma.confirmations.update({
       where: { email },
       data: { isConfirmed: true },
     });
   }
-  public createConfirmation(code: number, email: string, isConfirmed = false) {
+  public createConfirmation(
+    code: number,
+    email: string,
+    isConfirmed = false,
+  ): Promise<Confirmations> {
     return this.prisma.confirmations.create({
       data: {
         code: code + '',

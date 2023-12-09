@@ -3,6 +3,9 @@ import { CreateGameDto } from './CreateGame';
 import { TurnBody } from './Turn';
 import { CompletedMove, ShahData, MateData, StrikedData } from './MoveResult';
 import { ChatMessage } from './ChatMessage';
+import { PlainBoardState } from './PlainBoardState';
+import { TimeUpdate } from './TimeUpdate';
+import { DrawAgreement } from './DrawAgreement';
 
 export {
   ConnectToGameDto,
@@ -13,4 +16,7 @@ export {
   MateData,
   StrikedData,
   ChatMessage,
+  PlainBoardState,
+  TimeUpdate,
+  DrawAgreement,
 };

@@ -9,6 +9,7 @@ import {
   Board,
   CellUpdate,
 } from './game.entities';
+import { Message } from './game.chat';
 
 export {
   Client,
@@ -21,4 +22,5 @@ export {
   FiguresCellState,
   Board,
   Player,
+  Message,
 };

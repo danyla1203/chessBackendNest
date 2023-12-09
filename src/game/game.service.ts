@@ -3,10 +3,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateGameDto } from './dto';
+import {
+  CreateGameDto,
+  PlainBoardState,
+  TimeUpdate,
+  DrawAgreement,
+} from './dto';
 import { GameList } from './game.list';
-import { Game, Client, FiguresCellState, Player } from './entities';
-import { DrawGame, GameWithWinner } from './entities/game';
+import { Game, Client, FiguresCellState, Player, Message } from './entities';
+import { DrawGame, GameData, GameWithWinner } from './entities/game';
 import { GameModel } from './model';
 
 @Injectable()
@@ -16,7 +21,7 @@ export class GameService {
     private readonly model: GameModel,
   ) {}
 
-  public createGame(player: Client, config: CreateGameDto) {
+  public createGame(player: Client, config: CreateGameDto): Game {
     const saveDraw = async (pl1: Player, pl2: Player, drawData: DrawGame) => {
       if (pl1.authorized && pl2.authorized) {
         await this.model.saveDraw(drawData);
@@ -41,7 +46,7 @@ export class GameService {
     return newGame;
   }
 
-  public connectToGame(player: Client, gameId: number) {
+  public connectToGame(player: Client, gameId: number): Game {
     const game = this.list.findInLobby(gameId);
     if (!game) throw new NotFoundException('Game not found');
     const pl1 = Object.values(game.players)[0];
@@ -55,23 +60,23 @@ export class GameService {
     return game;
   }
 
-  public removeGameInLobby(player: Client) {
+  public removeGameInLobby(player: Client): void {
     this.list.removeGameFromLobbyByPlayer(player);
   }
 
-  public getLobby() {
-    return this.list.lobby.map((game) => game.getGameData());
+  public getLobby(): GameData[] {
+    return this.list.lobby.map((game) => game.data);
   }
-  public findGameById(id: number) {
+  public findGameById(id: number): Game {
     const game = this.list.games.find((game) => game.id === id);
     if (!game) throw new NotFoundException('Game not found');
     return game;
   }
 
-  public getActualGameState(game: Game) {
+  public getActualGameState(game: Game): PlainBoardState {
     const boards: FiguresCellState = game.process.state;
 
-    const plainObj: { [key: string]: { [key: string]: string } } = {
+    const plainObj = {
       white: {},
       black: {},
     };
@@ -87,11 +92,14 @@ export class GameService {
     return plainObj;
   }
 
-  public pushMessage(game: Game, message: string, player: Client) {
+  public pushMessage(game: Game, message: string, player: Client): Message {
     return game.chat.addMessage(message, player);
   }
 
-  public async surrender(gameId: number, client: Client) {
+  public async surrender(
+    gameId: number,
+    client: Client,
+  ): Promise<{ game: Game; winner: Player; looser: Player }> {
     const game = this.findGameById(gameId);
     const winner = Object.values(game.players).find(
       (pl) => pl.id !== client.id,
@@ -101,13 +109,10 @@ export class GameService {
     return { game, winner, looser: player };
   }
 
-  public purposeDraw(
-    gameId: number,
-    client: Client,
-  ): { w: boolean; b: boolean } {
+  public purposeDraw(gameId: number, client: Client): DrawAgreement {
     const game = this.findGameById(gameId);
     const player = game.players[client.id];
-    game.setDrawPurpose(player);
+    game.setDrawPurposeFrom(player);
     const purpose =
       player.side === 'w' ? { w: true, b: false } : { w: false, b: true };
 
@@ -117,7 +122,7 @@ export class GameService {
   public async acceptDraw(
     gameId: number,
     client: Client,
-  ): Promise<{ w: true; b: true }> {
+  ): Promise<DrawAgreement> {
     const game = this.findGameById(gameId);
     const draw = game.draw;
     const player = game.players[client.id];
@@ -125,13 +130,13 @@ export class GameService {
     if (draw[player.side]) throw new ConflictException('Draw already set');
     if (!draw.w && !draw.b) throw new ConflictException('Draw purpose not set');
 
-    game.setDrawPurpose(player);
+    game.setDrawPurposeFrom(player);
     await game.endGameByDraw();
 
     return { w: true, b: true };
   }
 
-  public rejectDraw(gameId: number): { w: false; b: false } {
+  public rejectDraw(gameId: number): DrawAgreement {
     const game = this.findGameById(gameId);
     const draw = game.draw;
 
@@ -141,14 +146,14 @@ export class GameService {
     return { w: false, b: false };
   }
 
-  public addTime(gameId: number, player: Client) {
+  public addTime(gameId: number, player: Client): TimeUpdate {
     const game = this.findGameById(gameId);
-    const targetPlayer = Object.values(game.players).find(
+    const targetPl = Object.values(game.players).find(
       (pl) => pl.id !== player.id,
     );
-    game.addTime(targetPlayer, game.config.timeIncrement);
+    game.addTimeTo(targetPl, game.config.timeIncrement);
 
-    const pl1 = game.players[targetPlayer.id];
+    const pl1 = game.players[targetPl.id];
     const pl2 = game.players[player.id];
 
     return { [pl1.side]: pl1.time, [pl2.side]: pl2.time };
