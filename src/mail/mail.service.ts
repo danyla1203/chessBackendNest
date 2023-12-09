@@ -14,15 +14,16 @@ export class MailService {
     return transport;
   }
 
-  async sendVerificationMail(code: number, email: string) {
-    const mail = {
-      to: email,
-      subject: 'Verify your account',
-      from: 'zelenko.d.work@gmail.com',
-      text: 'Hello',
-      html: `<h1>Code: ${code}</h1>`,
-    };
+  // INFO: Disable sendgrid mailing service for development purpose
+  // async sendVerificationMail(code: number, email: string) {
+  //   const mail = {
+  //     to: email,
+  //     subject: 'Verify your account',
+  //     from: 'zelenko.d.work@gmail.com',
+  //     text: 'Hello',
+  //     html: `<h1>Code: ${code}</h1>`,
+  //   };
 
-    return await this.send(mail);
-  }
+  //   return await this.send(mail);
+  // }
 }

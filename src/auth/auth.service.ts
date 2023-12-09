@@ -23,17 +23,19 @@ export class AuthService {
     if (isUserExist) throw new Conflict('User already exists');
 
     const code = Math.floor(Math.random() * 1000000);
-    const [response] = await this.mailService.sendVerificationMail(code, email);
-    if (response.statusCode !== 202) {
-      throw new BadRequest('Mail not sent');
-    }
+    // INFO: Disable sendgrid mailing service for development purpose
+    // const [response] = await this.mailService.sendVerificationMail(code, email);
+    // if (response.statusCode !== 202) {
+    //   throw new BadRequest('Mail not sent');
+    // }
     const confirmation = await this.model.findConfirmation(email);
     if (!confirmation) {
       await this.model.createConfirmation(code, email);
     } else {
       await this.model.changeConfirmationCode(confirmation.id, code);
     }
-    return { message: 'ok', email };
+    // INFO: Returning code, while sendgrid mailing is disabled
+    return { message: 'ok', email, code };
   }
   async verifyEmail(code: string, email: string) {
     const confirmation = await this.model.findConfirmation(email);
