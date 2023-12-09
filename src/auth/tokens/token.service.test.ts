@@ -1,8 +1,9 @@
 import { Test } from '@nestjs/testing';
-import { TokenService } from './token.service';
-import { JwtModule, JwtService } from '@nestjs/jwt';
-import { jwtConstants } from './constants';
 import { BadRequestException } from '@nestjs/common';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
+import { TokenService } from './token.service';
+import { jwtConstants } from './constants';
 
 describe('TokenService', () => {
   let service: TokenService;
@@ -15,6 +16,7 @@ describe('TokenService', () => {
           secret: jwtConstants.secret,
           signOptions: { expiresIn: '60s' },
         }),
+        ConfigModule,
       ],
       providers: [TokenService],
     }).compile();

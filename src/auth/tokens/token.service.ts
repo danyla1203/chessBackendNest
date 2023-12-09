@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { google } from 'googleapis';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TokenService {

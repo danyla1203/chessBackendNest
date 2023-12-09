@@ -3,8 +3,8 @@ import { AuthService } from './auth.service';
 import { PrismaService } from 'src/prisma.service';
 import { AuthController } from './auth.controller';
 import { AuthModel } from './model';
-import { TokenModule } from 'src/auth/tokens/tokens.module';
-import { MailService } from 'src/mail/mail.service';
+import { TokenModule } from './tokens/tokens.module';
+import { MailService } from '../mail/mail.service';
 
 @Global()
 @Module({

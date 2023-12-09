@@ -8,15 +8,10 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/Login';
 import { AuthModel } from './model';
 import { TokenService } from './tokens/token.service';
-import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private tokenService: TokenService,
-    private model: AuthModel,
-    private mailService: MailService,
-  ) {}
+  constructor(private tokenService: TokenService, private model: AuthModel) {}
 
   async sendVerificationMail(email: string) {
     const isUserExist = await this.model.findUserByEmail(email);

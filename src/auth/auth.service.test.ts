@@ -1,10 +1,11 @@
 import { Test } from '@nestjs/testing';
+import { ConfigModule } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
-import { TokenModule } from './tokens/tokens.module';
 import { AuthModel } from './model';
 import { TokenService } from './tokens/token.service';
 import { PrismaService } from '../prisma.service';
+import { TestTokenModule } from '../../test/utils/TestTokenModule';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -13,8 +14,8 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [TokenModule],
-      providers: [AuthService, AuthModel, PrismaService],
+      imports: [ConfigModule, TestTokenModule],
+      providers: [AuthService, PrismaService, AuthModel],
     }).compile();
 
     service = moduleRef.get<AuthService>(AuthService);
@@ -95,7 +96,7 @@ describe('AuthService', () => {
     it('should return pair of tokens', async () => {
       jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
       const user: any = { email: 'test', password: 'test' };
-      jest.spyOn(model, 'findByEmail').mockImplementation(async () => user);
+      jest.spyOn(model, 'findUserByEmail').mockImplementation(async () => user);
       const tokens = { access: 'token', refresh: 'token' };
       jest
         .spyOn(tokenService, 'getPair')
@@ -105,7 +106,7 @@ describe('AuthService', () => {
     });
 
     it('should throw error if no user found', () => {
-      jest.spyOn(model, 'findByEmail').mockImplementation(async () => null);
+      jest.spyOn(model, 'findUserByEmail').mockImplementation(async () => null);
       const loginDto = { password: 'test' };
       expect(service.login(loginDto as any)).rejects.toThrow('Unauthorized');
     });
@@ -113,7 +114,7 @@ describe('AuthService', () => {
     it('should throw error if password is wrong', () => {
       jest.spyOn(bcrypt, 'compare').mockImplementation(async () => false);
       const user: any = { email: 'test', password: 'hsdfg235' };
-      jest.spyOn(model, 'findByEmail').mockImplementation(async () => user);
+      jest.spyOn(model, 'findUserByEmail').mockImplementation(async () => user);
       const loginDto = {
         email: user.email,
         deviceId: 'test',
