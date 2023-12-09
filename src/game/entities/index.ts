@@ -1,4 +1,5 @@
 import { Client, PlayerSocket } from './Client';
+import { Player } from './Player';
 import { Game } from './game';
 import {
   Cell,
@@ -19,4 +20,5 @@ export {
   Figures,
   FiguresCellState,
   Board,
+  Player,
 };

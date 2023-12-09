@@ -5,10 +5,9 @@ import {
 } from '@nestjs/common';
 import { CreateGameDto } from './dto';
 import { GameList } from './game.list';
-import { Game, Client, FiguresCellState } from './entities';
-import { GameModel } from './model';
-import { Player } from './entities/Player';
+import { Game, Client, FiguresCellState, Player } from './entities';
 import { DrawGame, GameWithWinner } from './entities/game';
+import { GameModel } from './model';
 
 @Injectable()
 export class GameService {

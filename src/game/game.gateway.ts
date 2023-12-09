@@ -15,17 +15,16 @@ import {
 } from '@nestjs/common';
 import { WsValidationFilter } from '../tools/WsValidationFilter';
 import { GameService } from './game.service';
-import { AuthService } from 'src/auth/auth.service';
-import { TokenService } from 'src/auth/tokens/token.service';
+import { AuthService, TokenService } from 'src/auth';
 import {
   CompletedMove,
   ConnectToGameDto,
   CreateGameDto,
   TurnBody,
+  ChatMessage,
 } from './dto';
 import { Client, PlayerSocket } from './entities';
 import { IsPlayer } from './guards/isplayer.guard';
-import { ChatMessage } from './dto/ChatMessage';
 
 @WebSocketGateway({ namespace: 'game', cors: true, transports: ['websocket'] })
 @UsePipes(new ValidationPipe())

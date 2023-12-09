@@ -1,11 +1,5 @@
 import { ShahData } from '../dto';
-import {
-  Figures,
-  Figure,
-  Cell,
-  FiguresSet,
-  Board,
-} from '../entities/game.entities';
+import { Figures, Figure, Cell, FiguresSet } from '../entities/game.entities';
 
 export class GameState {
   blackBoard: Figures;

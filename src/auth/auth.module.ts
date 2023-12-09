@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { AuthService } from '.';
 import { PrismaService } from 'src/prisma.service';
 import { AuthController } from './auth.controller';
 import { AuthModel } from './model';

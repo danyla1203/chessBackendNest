@@ -7,7 +7,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from 'src/auth/tokens/jwt.guard';
+import { AuthGuard } from 'src/auth';
 import { PaymentsService } from './payments.service';
 
 @Controller('payments')

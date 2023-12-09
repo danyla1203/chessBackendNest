@@ -7,10 +7,8 @@ import {
   Put,
   Delete,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { UseRefreshDto } from './dto/UseRefresh';
-import { AuthGuard } from 'src/auth/tokens/jwt.guard';
-import { LoginDto } from './dto/Login';
+import { UseRefreshDto, LoginDto } from './dto';
+import { AuthGuard, AuthService } from '.';
 
 @Controller('auth')
 export class AuthController {

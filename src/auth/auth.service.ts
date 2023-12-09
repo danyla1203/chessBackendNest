@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { LoginDto } from './dto/Login';
+import { LoginDto } from './dto';
 import { AuthModel } from './model';
 import { TokenService } from './tokens/token.service';
 
