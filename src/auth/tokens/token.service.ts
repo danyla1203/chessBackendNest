@@ -1,21 +1,27 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from './constants';
 import { google } from 'googleapis';
 
 @Injectable()
 export class TokenService {
   oauthGoogle: any;
+  jwtSecret: string;
+  accessExp: string;
+  refreshExp: string;
   constructor(
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
   ) {
     const clId = config.get('GOOGLE_CLIENT_ID');
-    const secret = config.get('GOOGLE_SECRET');
+    const googleSecret = config.get('GOOGLE_SECRET');
     const redirect = config.get('GOOGLE_REDIRECT_URL');
 
-    this.oauthGoogle = new google.auth.OAuth2(clId, secret, redirect);
+    this.oauthGoogle = new google.auth.OAuth2(clId, googleSecret, redirect);
+
+    this.accessExp = config.get('JWT_ACCESS_EXPIRES');
+    this.refreshExp = config.get('JWT_REFRESH_EXPIRES');
+    this.jwtSecret = config.get('JWT_SECRET');
   }
 
   public parseToken(token: string) {
@@ -36,11 +42,11 @@ export class TokenService {
   public async getPair(id: number, deviceId: string) {
     const access = await this.jwt.signAsync(
       { id, deviceId },
-      { secret: jwtConstants.secret, expiresIn: '360s' },
+      { secret: this.jwtSecret, expiresIn: this.accessExp },
     );
     const refresh = await this.jwt.signAsync(
       { id, deviceId },
-      { secret: jwtConstants.secret, expiresIn: '30d' },
+      { secret: this.jwtSecret, expiresIn: this.refreshExp },
     );
     return { access, refresh };
   }

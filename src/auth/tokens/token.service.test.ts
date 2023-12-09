@@ -1,9 +1,8 @@
 import { Test } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TokenService } from './token.service';
-import { jwtConstants } from './constants';
 
 describe('TokenService', () => {
   let service: TokenService;
@@ -13,7 +12,7 @@ describe('TokenService', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [
         JwtModule.register({
-          secret: jwtConstants.secret,
+          secret: 'mockSecret',
           signOptions: { expiresIn: '60s' },
         }),
         ConfigModule,
@@ -30,7 +29,7 @@ describe('TokenService', () => {
       const result = { id: -1, deviceId: 'test' };
       const token = await jwtService.signAsync(
         { id: -1, deviceId: 'test' },
-        { secret: jwtConstants.secret, expiresIn: '360s' },
+        { secret: 'mockSec', expiresIn: '360s' },
       );
       jest.spyOn(jwtService, 'verify').mockImplementation(() => result);
 
