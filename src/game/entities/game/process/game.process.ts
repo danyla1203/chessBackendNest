@@ -1,14 +1,13 @@
 import { ConflictException } from '@nestjs/common';
-import { Figures, FiguresCellState, Cell, Figure, Board } from '../entities';
+import { Figures, FiguresCellState, Cell, Figure, Board, CellUpdate } from '..';
 import { GameState } from './game.state';
-import { CellUpdate } from '../entities/game.entities';
-import { CompletedMove, MateData, ShahData, StrikedData } from '../dto';
+import { CompletedMove, MateData, ShahData, StrikedData } from '../../../dto';
 
 export class GameProcess {
   store: GameState;
   Letters: string[];
 
-  initBoard(): FiguresCellState {
+  public initBoard(): FiguresCellState {
     const black = {
       pawn1: 'a7',
       pawn2: 'b7',
@@ -51,17 +50,17 @@ export class GameProcess {
     };
   }
 
-  get state(): FiguresCellState {
+  public get state(): FiguresCellState {
     return {
       white: this.store.getWhite(),
       black: this.store.getBlack(),
     };
   }
-  get turnSide(): 'w' | 'b' {
+  public get turnSide(): 'w' | 'b' {
     return this.store.side;
   }
 
-  get board(): Board {
+  public get board(): Board {
     const side = this.store.side;
     const state = this.store.state;
     let board, opponent;
@@ -75,22 +74,22 @@ export class GameProcess {
     return { board, opponent };
   }
 
-  set moveSide(side: 'w' | 'b') {
+  public set moveSide(side: 'w' | 'b') {
     this.store.side = side;
   }
 
-  removeShah(): void {
+  public removeShah(): void {
     this.store.removeShah();
   }
-  removeFigure(turnSide: 'w' | 'b', figure: Figure): void {
+  public removeFigure(turnSide: 'w' | 'b', figure: Figure): void {
     this.store.removeFigure(turnSide, figure);
   }
 
-  updateBoard(figure: Figure, cell: Cell): void {
+  public updateBoard(figure: Figure, cell: Cell): void {
     this.store.updateBoard(figure, cell);
   }
 
-  getOpponentSide(): 'w' | 'b' {
+  public getOpponentSide(): 'w' | 'b' {
     return this.store.side == 'w' ? 'b' : 'w';
   }
 
@@ -99,7 +98,7 @@ export class GameProcess {
     this.store = new GameState(white, black);
     this.Letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
   }
-  findNextLetter(center: string): string[] {
+  private findNextLetter(center: string): string[] {
     const result = [];
     for (let i = 0; i < this.Letters.length; i++) {
       if (this.Letters[i] == center) {
@@ -113,7 +112,7 @@ export class GameProcess {
     }
     return result;
   }
-  checkIsCellEmpty(board: Board, newCell: string): boolean {
+  private checkIsCellEmpty(board: Board, newCell: string): boolean {
     if (parseInt(newCell[1], 10) > 8) return false;
     for (const [figure] of board.board) {
       if (board.board.get(figure) === newCell) return false;
@@ -123,13 +122,13 @@ export class GameProcess {
     }
     return true;
   }
-  isEnemyInCell(opponent: Figures, cell: Cell): boolean {
+  private isEnemyInCell(opponent: Figures, cell: Cell): boolean {
     for (const [figure] of opponent) {
       if (opponent.get(figure) === cell) return true;
     }
     return false;
   }
-  getEmptyCellsAroundKn(board: Board, knCell: Cell): Cell[] {
+  private getEmptyCellsAroundKn(board: Board, knCell: Cell): Cell[] {
     return this.getCellsAround(knCell).filter((cell: Cell) => {
       return (
         this.checkIsCellEmpty(board, cell) ||
@@ -137,7 +136,7 @@ export class GameProcess {
       );
     });
   }
-  getCellsAround(center: Cell): Cell[] {
+  private getCellsAround(center: Cell): Cell[] {
     const [letter, number] = center;
     const [leftLetter, rightLetter] = this.findNextLetter(letter);
     const nextNum = parseInt(number, 10) + 1;
@@ -157,7 +156,7 @@ export class GameProcess {
         parseInt(cell[1]) <= 8 && parseInt(cell[1]) >= 1 && cell.length === 2,
     );
   }
-  getEmptyCellsBetween(knCell: Cell, cell: Cell) {
+  private getEmptyCellsBetween(knCell: Cell, cell: Cell) {
     const num1 = parseInt(cell[1]);
     const num2 = parseInt(knCell[1]);
     const index1 = this.Letters.findIndex((lett) => lett == cell[0]);
@@ -187,7 +186,7 @@ export class GameProcess {
     return possibleMoves;
   }
 
-  canRockMove(board: Board, cells: CellUpdate): boolean {
+  private canRockMove(board: Board, cells: CellUpdate): boolean {
     const { newCell, prevCell } = cells;
     const [prevLetter, num] = prevCell;
     const prevNum = parseInt(num, 10);
@@ -239,7 +238,10 @@ export class GameProcess {
     }
     return false;
   }
-  canPawnMove(board: Board, { newCell, prevCell }: CellUpdate): boolean {
+  private canPawnMove(
+    board: Board,
+    { newCell, prevCell }: CellUpdate,
+  ): boolean {
     const sideToMove = this.store.side === 'w' ? 1 : -1;
 
     const [prevLetter, prevNumber] = prevCell;
@@ -283,17 +285,20 @@ export class GameProcess {
       this.checkIsCellEmpty(board, pathCell)
     );
   }
-  canQueenMove(board: Board, cells: CellUpdate): boolean {
+  private canQueenMove(board: Board, cells: CellUpdate): boolean {
     return this.canBishopMove(board, cells) || this.canRockMove(board, cells);
   }
-  canKnMove(board: Board, { prevCell, newCell }: CellUpdate): boolean {
+  private canKnMove(board: Board, { prevCell, newCell }: CellUpdate): boolean {
     const possibleMoves = this.getEmptyCellsAroundKn(board, prevCell);
     for (const cell of possibleMoves) {
       if (cell === newCell) return true;
     }
     return false;
   }
-  canKnightMove(board: Board, { newCell, prevCell }: CellUpdate): boolean {
+  private canKnightMove(
+    board: Board,
+    { newCell, prevCell }: CellUpdate,
+  ): boolean {
     const [prevLetter, prevNum] = prevCell;
     const num = parseInt(prevNum, 10);
     const nextLetters = this.findNextLetter(prevLetter);
@@ -320,7 +325,7 @@ export class GameProcess {
       }
     }
   }
-  canBishopMove(board: Board, cells: CellUpdate): boolean {
+  private canBishopMove(board: Board, cells: CellUpdate): boolean {
     const { newCell, prevCell } = cells;
     const [prevLetter, num] = prevCell;
     const prevNum = parseInt(num, 10);
@@ -393,7 +398,7 @@ export class GameProcess {
     return false;
   }
 
-  verifyFigureMove(
+  private verifyFigureMove(
     figures: Figures,
     enemyFigures: Figures,
     figure: Figure,
@@ -422,7 +427,7 @@ export class GameProcess {
     }
   }
 
-  isStrikeAfterMove(cell: Cell): null | StrikedData {
+  private isStrikeAfterMove(cell: Cell): null | StrikedData {
     const { opponent } = this.board;
     const opSide = this.getOpponentSide();
     for (const [figure, fCell] of opponent) {
@@ -430,7 +435,7 @@ export class GameProcess {
     }
     return null;
   }
-  isShahRemainsAfterMove(figure: Figure, cell: Cell): boolean {
+  private isShahRemainsAfterMove(figure: Figure, cell: Cell): boolean {
     const shah = this.store.shah;
     if (!shah) return false;
     if (this.store.shah.shachedSide !== this.store.side) return false;
@@ -453,7 +458,7 @@ export class GameProcess {
     this.store.setNextTurnSide();
     return false;
   }
-  isShahAppearsAfterMove(figure: Figure, cell: Cell): boolean {
+  private isShahAppearsAfterMove(figure: Figure, cell: Cell): boolean {
     const possibleShahes = this.store.getPossibleShahes(this.store.side);
     const { board, opponent } = this.board;
     let knCell = board.get('Kn');
@@ -476,7 +481,7 @@ export class GameProcess {
     this.store.setNextTurnSide();
     return false;
   }
-  setPossibleShah(figure: Figure, cell: Cell): void {
+  private setPossibleShah(figure: Figure, cell: Cell): void {
     const enemyKnCell: Cell = this.board.opponent.get('Kn');
     const opponent: Figures = new Map();
     const board: Figures = new Map();
@@ -487,7 +492,7 @@ export class GameProcess {
       this.store.setPossibleShah(this.getOpponentSide(), figure);
     }
   }
-  setFigureStrikeAroundKn(figure: Figure, cell: Cell) {
+  private setFigureStrikeAroundKn(figure: Figure, cell: Cell) {
     const enemyKnCell: Cell = this.board.opponent.get('Kn');
     const opponent: Figures = new Map();
     const board: Figures = new Map();
@@ -536,7 +541,7 @@ export class GameProcess {
     };
   }
 
-  setShah(movedFigure: Figure): null | ShahData {
+  private setShah(movedFigure: Figure): null | ShahData {
     const { board, opponent } = this.board;
     const knCell = opponent.get('Kn');
     if (this.verifyFigureMove(board, opponent, movedFigure, knCell)) {
@@ -544,7 +549,7 @@ export class GameProcess {
     }
     return this.store.shah;
   }
-  canCoverKnWhenShahed({ byFigure }: ShahData): boolean {
+  private canCoverKnWhenShahed({ byFigure }: ShahData): boolean {
     const { board, opponent } = this.board;
     const cell = board.get(byFigure);
     const possibleMoves = this.getEmptyCellsBetween(opponent.get('Kn'), cell);
@@ -565,7 +570,7 @@ export class GameProcess {
     this.store.setNextTurnSide();
     return false;
   }
-  setMate(movedFigure: Figure): null | MateData {
+  private setMate(movedFigure: Figure): null | MateData {
     if (!this.store.shah) return null;
     if (this.canCoverKnWhenShahed(this.store.shah)) return null;
 

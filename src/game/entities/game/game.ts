@@ -1,45 +1,18 @@
 import { ConflictException } from '@nestjs/common';
-import { CompletedMove, MateData, ShahData, StrikedData } from '../dto';
-import { GameProcess } from '../process/game.process';
-import { Client } from './Client';
-import { Player } from './Player';
-import { Cell, Figure, FiguresCellState } from './game.entities';
+import { CompletedMove, InitedGameData } from '../../dto';
+import { GameProcess } from './process/game.process';
+import { Client } from '../Client';
+import { Player } from '../Player';
+import {
+  Cell,
+  Config,
+  DrawGame,
+  Figure,
+  GameData,
+  GameWithWinner,
+  Move,
+} from './game.types';
 import { GameChat } from './game.chat';
-
-export type Config = {
-  side: 'w' | 'b' | 'rand';
-  time: number;
-  timeIncrement: number;
-};
-
-export type GameData = {
-  id: number;
-  players: { [k: string]: Player };
-  config: Config;
-};
-type GameResult = {
-  id: number;
-  config: Config;
-  moves: Move[];
-};
-export type GameWithWinner = GameResult & {
-  winner: Player;
-  looser: Player;
-};
-export type DrawGame = GameResult & {
-  pl1: Player;
-  pl2: Player;
-};
-
-export type Move = {
-  side: 'w' | 'b';
-  figure: Figure;
-  from: Cell;
-  to: Cell;
-  strikedData?: StrikedData;
-  shahData?: ShahData;
-  mateData?: MateData;
-};
 
 export class Game {
   id: number;
@@ -62,7 +35,7 @@ export class Game {
     winnerData: GameWithWinner,
   ) => Promise<void>;
 
-  get data(): GameData {
+  public get data(): GameData {
     return {
       id: this.id,
       players: this.players,
@@ -70,14 +43,14 @@ export class Game {
     };
   }
 
-  getInitedGameData(userId: string) {
+  public getInitedGameData(userId: string): InitedGameData {
     const { white, black } = this.process.state;
     const boards = {
       white: Object.fromEntries(white),
       black: Object.fromEntries(black),
     };
 
-    const payload: any = {
+    const payload = {
       board: boards,
       gameId: this.id,
       side: this.players[userId].side,

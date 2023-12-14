@@ -1,7 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import { UserModel } from './model';
-import { AuthService } from 'src/auth';
+import { AuthService, Tokens } from 'src/auth';
 
 @Injectable()
 export class UserService {
@@ -10,7 +10,7 @@ export class UserService {
     private readonly authService: AuthService,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  public async create(createUserDto: CreateUserDto): Promise<Tokens> {
     const confirmation = await this.model.findConfirmation(createUserDto.email);
     if (!confirmation) throw new ConflictException('Confirm email first');
 
@@ -25,19 +25,15 @@ export class UserService {
     );
   }
 
-  profile(id: number) {
+  public profile(id: number) {
     return this.model.findProfile(id);
   }
 
-  async games(id: number) {
+  public async games(id: number) {
     return { games: await this.model.findUserGames(id) };
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  public update(id: number, updateUserDto: UpdateUserDto) {
     return this.model.updateUser(id, updateUserDto.name);
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
   }
 }

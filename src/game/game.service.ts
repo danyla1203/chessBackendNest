@@ -10,8 +10,15 @@ import {
   DrawAgreement,
 } from './dto';
 import { GameList } from './game.list';
-import { Game, Client, FiguresCellState, Player, Message } from './entities';
-import { DrawGame, GameData, GameWithWinner } from './entities/game';
+import { Client, Player } from './entities';
+import {
+  Game,
+  DrawGame,
+  GameData,
+  GameWithWinner,
+  FiguresCellState,
+  Message,
+} from './entities/game';
 import { GameModel } from './model';
 
 @Injectable()

@@ -6,6 +6,7 @@ import { ChatMessage } from './ChatMessage';
 import { PlainBoardState } from './PlainBoardState';
 import { TimeUpdate } from './TimeUpdate';
 import { DrawAgreement } from './DrawAgreement';
+import { InitedGameData } from './InitedGameData';
 
 export {
   ConnectToGameDto,
@@ -19,4 +20,5 @@ export {
   PlainBoardState,
   TimeUpdate,
   DrawAgreement,
+  InitedGameData,
 };

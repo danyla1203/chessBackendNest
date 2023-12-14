@@ -1,18 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { CreateUserDto } from './dto';
-
-const userFields = {
-  id: true,
-  name: true,
-  email: true,
-};
+import { Confirmations } from '@prisma/client';
+import { UserFields, UserGames, userFields } from './entities';
 
 @Injectable()
 export class UserModel {
   constructor(private readonly prisma: PrismaService) {}
 
-  createUser(user: CreateUserDto) {
+  public createUser(user: CreateUserDto): Promise<UserFields> {
     return this.prisma.user.create({
       select: userFields,
       data: {
@@ -23,24 +19,24 @@ export class UserModel {
     });
   }
 
-  findConfirmation(email: string) {
+  public findConfirmation(email: string): Promise<Confirmations> {
     return this.prisma.confirmations.findUnique({ where: { email } });
   }
 
-  findProfile(id: number) {
+  public findProfile(id: number): Promise<UserFields> {
     return this.prisma.user.findUnique({
       select: userFields,
       where: { id },
     });
   }
-  findProfileByEmail(email: string) {
+  public findProfileByEmail(email: string): Promise<UserFields> {
     return this.prisma.user.findUnique({
       select: userFields,
       where: { email },
     });
   }
 
-  updateUser(id: number, name: string) {
+  public updateUser(id: number, name: string): Promise<UserFields> {
     return this.prisma.user.update({
       select: userFields,
       where: { id },
@@ -48,7 +44,7 @@ export class UserModel {
     });
   }
 
-  findUserGames(id: number) {
+  public findUserGames(id: number): Promise<UserGames[]> {
     return this.prisma.game.findMany({
       select: {
         id: true,

@@ -1,6 +1,6 @@
-import { Cell, Figure } from '../entities';
+import { Cell, Figure } from '../entities/game';
 
-export class PlainBoardState {
+export type PlainBoardState = {
   black: { [key: Figure]: Cell };
   white: { [key: Figure]: Cell };
-}
+};

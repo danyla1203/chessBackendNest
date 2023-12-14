@@ -8,12 +8,16 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto';
 import { AuthModel } from './model';
 import { TokenService } from './tokens/token.service';
+import { UserFields } from 'src/user/entities/user.entity';
+import { Tokens } from './tokens/token.entities';
 
 @Injectable()
 export class AuthService {
   constructor(private tokenService: TokenService, private model: AuthModel) {}
 
-  async sendVerificationMail(email: string) {
+  public async sendVerificationMail(
+    email: string,
+  ): Promise<{ message: 'ok'; email: string; code: number }> {
     const isUserExist = await this.model.findUserByEmail(email);
     if (isUserExist) throw new Conflict('User already exists');
 
@@ -32,7 +36,10 @@ export class AuthService {
     // INFO: Returning code, while sendgrid mailing is disabled
     return { message: 'ok', email, code };
   }
-  async verifyEmail(code: string, email: string) {
+  public async verifyEmail(
+    code: string,
+    email: string,
+  ): Promise<{ message: 'ok' }> {
     const confirmation = await this.model.findConfirmation(email);
     if (!confirmation) throw new BadRequest('Invalid email');
     if (confirmation.code !== code) throw new BadRequest('Invalid code');
@@ -42,7 +49,7 @@ export class AuthService {
     return { message: 'ok' };
   }
 
-  async useRefresh(refreshToken: string) {
+  public async useRefresh(refreshToken: string): Promise<Tokens> {
     const auth = await this.model.findSession(refreshToken);
     if (!auth) throw new UnauthorizedException();
     if (auth.expiresIn < new Date()) {
@@ -57,7 +64,7 @@ export class AuthService {
     return tokens;
   }
 
-  async createSession(id: number, deviceId: string) {
+  public async createSession(id: number, deviceId: string): Promise<Tokens> {
     const tokens = await this.tokenService.getPair(id, deviceId);
 
     await this.model.createSession(id, tokens.refresh, deviceId);
@@ -65,7 +72,10 @@ export class AuthService {
     return tokens;
   }
 
-  async validateCreds(id: number, deviceId: string) {
+  public async validateCreds(
+    id: number,
+    deviceId: string,
+  ): Promise<UserFields> {
     const auth = await this.model.findSessionByUserId(id, deviceId);
     if (!auth) throw new UnauthorizedException();
     if (auth.expiresIn < new Date()) {
@@ -75,7 +85,7 @@ export class AuthService {
     return auth.user;
   }
 
-  async login(loginData: LoginDto) {
+  public async login(loginData: LoginDto): Promise<Tokens> {
     const user = await this.model.findUserByEmail(loginData.email);
     if (!user) throw new UnauthorizedException();
 
@@ -91,11 +101,11 @@ export class AuthService {
 
     return tokens;
   }
-  async logout(id: number, deviceId: string) {
+  public async logout(id: number, deviceId: string) {
     await this.model.deleteSessionByUserId(id, deviceId);
   }
 
-  async googleOAuth(code: string) {
+  public async googleOAuth(code: string) {
     const { email } = await this.tokenService.getGoogleUser(code);
     const user = await this.model.findUserByEmail(email);
     if (!user) {

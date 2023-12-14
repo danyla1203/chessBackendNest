@@ -1,3 +1,3 @@
-export class ConnectToGameDto {
+export type ConnectToGameDto = {
   gameId: number;
-}
+};
