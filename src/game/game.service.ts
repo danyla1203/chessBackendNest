@@ -56,7 +56,7 @@ export class GameService {
   public connectToGame(player: Client, gameId: number): Game {
     const game = this.list.findInLobby(gameId);
     if (!game) throw new NotFoundException('Game not found');
-    const pl1 = Object.values(game.players)[0];
+    const pl1 = game.players[0];
     if (player.userId && pl1.userId === player.userId) {
       throw new ConflictException('Couldn"t join');
     }
@@ -108,12 +108,12 @@ export class GameService {
     client: Client,
   ): Promise<{ game: Game; winner: Player; looser: Player }> {
     const game = this.findGameById(gameId);
-    const winner = Object.values(game.players).find(
-      (pl) => pl.id !== client.id,
-    );
-    const player = game.players[client.id];
-    await game.endGame(winner, player);
-    return { game, winner, looser: player };
+    const [pl1, pl2] = game.players;
+    const winner = pl1.id !== client.id ? pl1 : pl2;
+    const looser = pl1.id === client.id ? pl1 : pl2;
+
+    await game.endGame(winner, looser);
+    return { game, winner, looser };
   }
 
   public purposeDraw(gameId: number, client: Client): DrawAgreement {
@@ -155,12 +155,12 @@ export class GameService {
 
   public addTime(gameId: number, player: Client): TimeUpdate {
     const game = this.findGameById(gameId);
-    const targetPl = Object.values(game.players).find(
+    const toPlayer = Object.values(game.players).find(
       (pl) => pl.id !== player.id,
     );
-    game.addTimeTo(targetPl, game.config.timeIncrement);
+    game.addTimeTo(toPlayer, game.config.timeIncrement);
 
-    const pl1 = game.players[targetPl.id];
+    const pl1 = game.players[toPlayer.id];
     const pl2 = game.players[player.id];
 
     return { [pl1.side]: pl1.time, [pl2.side]: pl2.time };

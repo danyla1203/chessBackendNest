@@ -84,11 +84,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const game = this.service.connectToGame(player, gameId);
     player.join(`game:${game.id}`);
 
-    for (const player of Object.values(game.players)) {
+    for (const player of game.players) {
       player.emit('game:init-data', game.getInitedGameData(player.id));
     }
     this.server.to(`game:${game.id}`).emit('game:start');
     game.start();
+    const lobby = this.service.getLobby();
+    this.server.emit('lobby:update', lobby);
   }
 
   @SubscribeMessage('move')

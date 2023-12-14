@@ -17,7 +17,7 @@ import { GameChat } from './game.chat';
 export class Game {
   id: number;
   isActive = false;
-  players: { [k: string]: Player };
+  players: Player[];
   config: Config;
   process: GameProcess = new GameProcess();
   chat: GameChat = new GameChat();
@@ -53,7 +53,7 @@ export class Game {
     const payload = {
       board: boards,
       gameId: this.id,
-      side: this.players[userId].side,
+      side: this.players.find((pl) => pl.id === userId).side,
       maxTime: this.config.time,
       timeIncrement: this.config.timeIncrement,
     };
@@ -68,16 +68,14 @@ export class Game {
     const side: 'w' | 'b' =
       config.side === 'rand' ? (Math.random() > 0.5 ? 'w' : 'b') : config.side;
 
-    this.players = {
-      [player.id]: { ...player, side, time: config.time },
-    };
+    this.players = [{ ...player, side, time: config.time }];
     this.config = config;
   }
 
   public addPlayer(player: Client): void {
     const pickedSide = Object.values(this.players)[0].side;
     const side = pickedSide === 'w' ? 'b' : 'w';
-    this.players[player.id] = { ...player, side, time: this.config.time };
+    this.players.push({ ...player, side, time: this.config.time });
   }
 
   public async endGame(winner: Player, looser: Player): Promise<void> {
@@ -164,7 +162,8 @@ export class Game {
     if (!this.isActive) throw new ConflictException('Game is inactive');
 
     const turnSide = this.process.turnSide;
-    const player = this.players[playerId];
+    const player =
+      this.players[0].id === playerId ? this.players[0] : this.players[1];
 
     if (player.side !== turnSide) {
       throw new ConflictException('Not your turn');
@@ -172,9 +171,7 @@ export class Game {
     const from: Cell = this.process.board.board.get(figure);
     const turnResult = this.process.makeTurn(figure, cell);
 
-    const nextPlayer = Object.values(this.players).find(
-      (player) => player.id !== playerId,
-    );
+    const nextPlayer = this.players.find((player) => player.id !== playerId);
     this.changeTickingSide(nextPlayer, player);
 
     this.saveMove(figure, cell, from, turnResult);
@@ -184,12 +181,8 @@ export class Game {
 
   public start(): void {
     this.isActive = true;
-    const whitePlayer = Object.values(this.players).find(
-      (player) => player.side === 'w',
-    );
-    const blackPlayer = Object.values(this.players).find(
-      (player) => player.side === 'b',
-    );
+    const whitePlayer = this.players.find((player) => player.side === 'w');
+    const blackPlayer = this.players.find((player) => player.side === 'b');
     blackPlayer.time -= this.config.timeIncrement;
     this.changeTickingSide(whitePlayer, blackPlayer);
   }
