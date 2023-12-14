@@ -1,16 +1,14 @@
-import { Figure } from '../entities/game';
-
 export type StrikedData = {
   strikedSide: 'w' | 'b';
-  figure: Figure;
+  figure: string;
 };
 export type ShahData = {
   shachedSide: 'w' | 'b';
-  byFigure: Figure;
+  byFigure: string;
 };
 export type MateData = {
   matedSide: 'w' | 'b';
-  byFigure: Figure;
+  byFigure: string;
 };
 
 export type CompletedMove = {
