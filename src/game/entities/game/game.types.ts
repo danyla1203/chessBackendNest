@@ -32,7 +32,7 @@ export type Config = {
 
 export type GameData = {
   id: number;
-  players: { [k: string]: Player };
+  players: Player[];
   config: Config;
 };
 type GameResult = {
