@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:13
+    container_name: test-database
+    healthcheck:
+      test: /usr/bin/pg_isready
+      interval: 5s
+      timeout: 10s
+      retries: 120
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: danylo
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: tests
+  wait_for_db:
+    image: hello-world
+    depends_on:
+      - db

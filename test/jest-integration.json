@@ -2,7 +2,7 @@
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": "../src",
   "testEnvironment": "node",
-  "testRegex": ".e2e-test.ts$",
+  "testRegex": ".int-test.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   }
