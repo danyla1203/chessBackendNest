@@ -62,7 +62,7 @@ jobs:
           node-version: 18.x
           cache: 'npm'
       - name: Install dependencies
-        run: npm ci
+        run: npm ci && npm install -g dotenv-cli
       - name: Connect to PostgreSQL
         run: npx prisma migrate deploy
         env:
