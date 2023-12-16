@@ -66,7 +66,7 @@ jobs:
       - name: Connect to PostgreSQL
         run: npx prisma migrate deploy
         env:
-          DATABASE_URL: postgresql://danylo:root@postgres:5432/tests
+          DATABASE_URL: postgresql://danylo:root@localhost:5432/tests
       - name: Run integration tests
         run: npm run test:integration
 
