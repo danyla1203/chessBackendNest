@@ -335,4 +335,14 @@ describe('Auth module (integration)', () => {
       await expect(newSession).toBeDefined();
     });
   });
+  describe('logout', () => {
+    it('should delete session on logout', async () => {
+      const { id, userId, deviceId } = await prisma.auth.findFirst();
+      await service.logout(userId, deviceId);
+      const deletedSession = await prisma.auth.findFirst({
+        where: { id },
+      });
+      expect(deletedSession).toBe(null);
+    });
+  });
 });
