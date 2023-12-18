@@ -11,16 +11,14 @@ jest.mock('googleapis', () => {
   };
 });
 jest.mock('axios', () => null);
-
 import { JwtModule } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Test } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
-import { TestTokenModule } from '../../../test/utils/TestTokenModule';
 import { AuthService } from '../auth.service';
 import { PrismaService } from '../../prisma.service';
 import { AuthModel } from '../model';
-import { Confirmation, PrismaClient, User } from '@prisma/client';
+import { Confirmation, User } from '@prisma/client';
 import {
   BadRequestException,
   ConflictException,
@@ -32,8 +30,8 @@ import { TokenService } from '../tokens/token.service';
 describe('Auth module (integration)', () => {
   let service: AuthService;
   let tokenService: TokenService;
-  const prisma = new PrismaClient();
-  beforeEach(async () => {
+  let prisma: PrismaService;
+  beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [
         JwtModule.register({
@@ -46,6 +44,10 @@ describe('Auth module (integration)', () => {
     }).compile();
     tokenService = moduleRef.get(TokenService);
     service = moduleRef.get(AuthService);
+    prisma = moduleRef.get(PrismaService);
+  });
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('sendVerificationMail', () => {
@@ -140,9 +142,6 @@ describe('Auth module (integration)', () => {
     });
   });
   describe('login', () => {
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
     it('should throw Unauthorized err if user doesnt exist', async () => {
       expect(
         service.login({
@@ -208,6 +207,48 @@ describe('Auth module (integration)', () => {
         access: 'access',
         refresh: 'refresh',
       });
+    });
+  });
+  describe('validateCreds', () => {
+    it('should throw Unauthorized err if session doesnt exist', async () => {
+      await expect(service.validateCreds(-1, 'devId')).rejects.toThrow(
+        new UnauthorizedException(),
+      );
+      await expect(service.validateCreds(1, 'fakeDevId')).rejects.toThrow(
+        new UnauthorizedException(),
+      );
+    });
+    it('should delete session and throw Unauthorized err if session is expired', async () => {
+      const { id, userId, deviceId } = await prisma.auth.findFirst({
+        where: {
+          expiresIn: {
+            lt: new Date(),
+          },
+        },
+      });
+      await expect(service.validateCreds(userId, deviceId)).rejects.toThrow(
+        new BadRequestException('Session expired'),
+      );
+      const deletedAuth = await prisma.auth.findUnique({
+        where: { id },
+      });
+      expect(deletedAuth).toBe(null);
+    });
+    it('should return user if session is exist', async () => {
+      const { user, deviceId } = await prisma.auth.findFirst({
+        include: {
+          user: true,
+        },
+        where: {
+          expiresIn: {
+            gt: new Date(),
+          },
+        },
+      });
+      const expected = { id: user.id, email: user.email, name: user.name };
+      expect(service.validateCreds(user.id, deviceId)).resolves.toStrictEqual(
+        expected,
+      );
     });
   });
 });
