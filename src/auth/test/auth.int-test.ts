@@ -275,4 +275,64 @@ describe('Auth module (integration)', () => {
       expect(session).toBeDefined();
     });
   });
+  describe('useRefresh', () => {
+    it('should throw Unauthorized err if session doesnt exist', () => {
+      expect(service.useRefresh('stubToken')).rejects.toThrow(
+        new UnauthorizedException(),
+      );
+    });
+    it('should delete session and throw Unauthorized err if session is expired', async () => {
+      const { id, refreshToken } = await prisma.auth.findFirst({
+        where: {
+          expiresIn: {
+            lt: new Date(),
+          },
+        },
+      });
+      await expect(service.useRefresh(refreshToken)).rejects.toThrow(
+        new BadRequestException('Session expired'),
+      );
+      const deletedAuth = await prisma.auth.findUnique({
+        where: { id },
+      });
+      expect(deletedAuth).toBe(null);
+    });
+    it('should delete and then create new session if refresh token is used', async () => {
+      const session = await prisma.auth.findFirst({
+        include: {
+          user: true,
+        },
+        where: {
+          expiresIn: {
+            gt: new Date(),
+          },
+        },
+      });
+      jest.spyOn(tokenService, 'getPair').mockImplementation(async () => {
+        return {
+          refresh: 'refresh',
+          access: 'access',
+        };
+      });
+      await expect(
+        service.useRefresh(session.refreshToken),
+      ).resolves.toStrictEqual({
+        refresh: 'refresh',
+        access: 'access',
+      });
+      const oldSession = await prisma.auth.findUnique({
+        where: {
+          id: session.id,
+        },
+      });
+      await expect(oldSession).toBe(null);
+      const newSession = await prisma.auth.findFirst({
+        where: {
+          refreshToken: 'refresh',
+          userId: session.userId,
+        },
+      });
+      await expect(newSession).toBeDefined();
+    });
+  });
 });
