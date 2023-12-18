@@ -38,6 +38,7 @@ async function generateData() {
             refreshToken: faker.string.uuid(),
             deviceId: faker.string.nanoid(8),
             userId: user.id,
+            expiresIn: new Date(),
           },
         ],
       });
