@@ -15,7 +15,7 @@
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test:unit": "jest --verbose --detectOpenHandles",
-    "test:integration": "dotenv -e ./test/.env -- jest -c ./test/jest-integration.json --verbose --detectOpenHandles",
+    "test:integration": "jest -c ./test/jest-integration.json --verbose --detectOpenHandles",
     "test:integration:local": "./test/local-integration.sh",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",

@@ -73,5 +73,8 @@ jobs:
           DATABASE_URL: postgresql://danylo:root@localhost:5433/tests
       - name: Run integration tests
         run: npm run test:integration
+        env:
+          DATABASE_URL: postgresql://danylo:root@localhost:5433/tests
+          
 
 
