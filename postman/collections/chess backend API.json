@@ -1079,7 +1079,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "8b131e20-906e-461f-9348-c363abfe8f20",
+				"id": "7d9d0cc8-aec1-4b9f-9b0f-040ade768648",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -1089,7 +1089,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "ab6130b3-cbe3-4222-bd6e-af23aa731783",
+				"id": "4dbd2618-7e11-4b33-ad9f-65ec6e7b9eb5",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -1099,9 +1099,9 @@
 	],
 	"variable": [
 		{
-			"id": "fa3158ad-0fb0-4265-b1c7-1ea2e04d7b85",
+			"id": "eaaf7b3d-df19-470d-a844-1d0ed3bf0d28",
 			"key": "ApiHost",
-			"value": "http://localhost:9200/api\n",
+			"value": "http://localhost:9200/api",
 			"type": "string"
 		}
 	]
