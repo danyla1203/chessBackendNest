@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from '../prisma.service';
 import { CreateUserDto } from './dto';
 import { Confirmation } from '@prisma/client';
 import { UserFields, UserGames, userFields } from './entities';
