@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { CreateUserDto } from './dto';
-import { Confirmations } from '@prisma/client';
+import { Confirmation } from '@prisma/client';
 import { UserFields, UserGames, userFields } from './entities';
 
 @Injectable()
@@ -19,8 +19,8 @@ export class UserModel {
     });
   }
 
-  public findConfirmation(email: string): Promise<Confirmations> {
-    return this.prisma.confirmations.findUnique({ where: { email } });
+  public findConfirmation(email: string): Promise<Confirmation> {
+    return this.prisma.confirmation.findUnique({ where: { email } });
   }
 
   public findProfile(id: number): Promise<UserFields> {
