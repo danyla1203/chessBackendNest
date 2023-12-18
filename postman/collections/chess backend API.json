@@ -1,0 +1,1108 @@
+{
+	"info": {
+		"_postman_id": "58c79a63-7004-4ad1-86dd-de5d81249b80",
+		"name": "chess backend API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_uid": "12842489-58c79a63-7004-4ad1-86dd-de5d81249b80"
+	},
+	"item": [
+		{
+			"name": "send verification email",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e4a3636a-f8bd-4ba2-8ba6-b74ceafbff9c",
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required field 'message'\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.have.property('message');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Message is a non-empty string\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Content-Type header is application/json\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Message value is 'ok'\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.message).to.equal(\"ok\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Message is not null or undefined\", function () {",
+							"  const responseData = pm.response.json();",
+							"  ",
+							"  pm.expect(responseData.message).to.exist.and.to.not.be.null.and.not.be.undefined;",
+							"});",
+							"",
+							"",
+							"pm.test(\"Content-Type header is present in the response\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.exist;",
+							"});",
+							"",
+							"",
+							"pm.test(\"Message field is present and not empty\", function () {",
+							"  const responseData = pm.response.json();",
+							"",
+							"  pm.expect(responseData).to.be.an('object');",
+							"  pm.expect(responseData.message).to.exist.and.to.not.be.empty;",
+							"});",
+							"",
+							"",
+							"pm.test(\"Message is a valid response\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.message).to.exist;",
+							"});var template = `",
+							"<canvas id=\"myChart\" height=\"75\"></canvas>",
+							"",
+							"<script src=\"https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js\"></script> ",
+							"",
+							"<script>",
+							"    var ctx = document.getElementById(\"myChart\");",
+							"",
+							"    var myChart = new Chart(ctx, {",
+							"        type: \"line\",",
+							"        data: {",
+							"            labels: [\"Response\"],",
+							"            datasets: [{",
+							"                data: [0],",
+							"                label: \"Verification Mail Status\",",
+							"                borderColor: \"#3e95cd\",",
+							"                fill: false,",
+							"            }]",
+							"        },",
+							"        options: {",
+							"            title: {",
+							"                display: true,",
+							"                text: 'Verification Mail Status'",
+							"            },",
+							"            scales: {",
+							"                yAxes: [{",
+							"                    ticks: {",
+							"                        beginAtZero:true",
+							"                    }",
+							"                }]",
+							"            }",
+							"        }",
+							"",
+							"    });",
+							"",
+							"    // Access the data passed to pm.visualizer.set() from the JavaScript",
+							"    // code of the Visualizer template",
+							"    pm.getData(function (err, value) {",
+							"        myChart.data.datasets[0].data = [value.response.message === \"ok\" ? 1 : 0];",
+							"        myChart.update();",
+							"    });",
+							"",
+							"</script>`;",
+							"",
+							"function constructVisualizerPayload() {",
+							"    var res = pm.response.json();",
+							"    ",
+							"    var visualizerData = {",
+							"        // Data takes an array of numbers",
+							"        message: res.message",
+							"    };",
+							"",
+							"    return {response: visualizerData};",
+							"}",
+							"",
+							"pm.visualizer.set(template, constructVisualizerPayload());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"id": "194f3288-52b8-4fbf-8601-3921519ca2fa",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"mowen82253@marikuza.com\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/auth/send-verification-mail",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"auth",
+						"send-verification-mail"
+					]
+				},
+				"description": "\nThis endpoint is used to send a verification email for the provided email address.\n\n### Request Body\n- email (string, required): The email address to which the verification email will be sent.\n\n### Response\n- Status: 200 OK\n- message (string): A message indicating the status of the email sending process. In the example response, the message is \"ok\".\n\n"
+			},
+			"response": [
+				{
+					"id": "20055daa-0adc-484d-b1cb-1190bffd1b9d",
+					"name": "ok result",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"mowen82253@marikuza.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/send-verification-mail",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"send-verification-mail"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type, Authorization, X-Requested-With"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "PUT, POST, GET, DELETE, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 07 Apr 2023 13:21:21 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						},
+						{
+							"key": "Content-Length",
+							"value": "16"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"ok\"\n}"
+				},
+				{
+					"id": "23a31259-539e-4ed3-a942-4fd2d7428801",
+					"name": "conflict err",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"mowen82253@marikuza.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/send-verification-mail",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"send-verification-mail"
+							]
+						}
+					},
+					"status": "Conflict",
+					"code": 409,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type, Authorization, X-Requested-With"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "PUT, POST, GET, DELETE, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 07 Apr 2023 13:22:50 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						},
+						{
+							"key": "Content-Length",
+							"value": "58"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"type\": \"CONFLICT\",\n    \"message\": \"Confirmation already exist\"\n}"
+				}
+			]
+		},
+		{
+			"name": "verify email by code",
+			"id": "48c91334-c034-45c4-a969-2c21f50e53f0",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "code",
+							"value": "1a028f64fbbdc65402750134755b3a79",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "zelenko.danil@gmail.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{ApiHost}}/auth/verify-email",
+					"host": [
+						"{{ApiHost}}"
+					],
+					"path": [
+						"auth",
+						"verify-email"
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "421129d6-25eb-4748-8538-f6e7bd57fa87",
+					"name": "ok result",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "code",
+									"value": "1a028f64fbbdc65402750134755b3a79",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "zelenko.danil@gmail.com",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/api/verify-email",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"verify-email"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type, Authorization, X-Requested-With"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "PUT, POST, GET, DELETE, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 07 Apr 2023 14:56:19 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						},
+						{
+							"key": "Content-Length",
+							"value": "16"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"ok\"\n}"
+				},
+				{
+					"id": "821b3d32-78db-4032-92e3-e725a6967762",
+					"name": "bad request",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "code",
+									"value": "1a028f64fbbdc65402750134755b3a79",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "zelenko.danil@gmail.com",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/api/verify-email",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"verify-email"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type, Authorization, X-Requested-With"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "PUT, POST, GET, DELETE, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 07 Apr 2023 15:02:14 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						},
+						{
+							"key": "Content-Length",
+							"value": "51"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"type\": \"BAD_REQUEST\",\n    \"message\": \"Validation error\"\n}"
+				},
+				{
+					"id": "1517a2c9-b209-4dd1-82d1-eeaa43b35747",
+					"name": "incorrect code",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "code",
+									"value": "1a028f64fbbdc65402750134755b3a79",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "zelenko@gmail.com",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/api/verify-email",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"verify-email"
+							]
+						}
+					},
+					"status": "Conflict",
+					"code": 409,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type, Authorization, X-Requested-With"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "PUT, POST, GET, DELETE, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 07 Apr 2023 15:02:52 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						},
+						{
+							"key": "Content-Length",
+							"value": "59"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"type\": \"CONFLICT\",\n    \"message\": \"Confirmation code incorrect\"\n}"
+				}
+			]
+		},
+		{
+			"name": "sign up",
+			"id": "3f007cf1-5c10-4431-aa86-3a5facbfccf0",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "Test_USER",
+							"type": "text"
+						},
+						{
+							"key": "email",
+							"value": "mowen82253@marikuza.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "1234123",
+							"type": "text"
+						},
+						{
+							"key": "deviceId",
+							"value": "test-device",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{ApiHost}}/auth/signup",
+					"host": [
+						"{{ApiHost}}"
+					],
+					"path": [
+						"auth",
+						"signup"
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "9cb31b8a-2e29-4364-9223-6a3b254fea01",
+					"name": "user already exist",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "TestUser",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "zelenko.danil@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "12341234",
+									"type": "text"
+								},
+								{
+									"key": "deviceId",
+									"value": "test-device",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/api/signup",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"signup"
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type, Authorization, X-Requested-With"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "PUT, POST, GET, DELETE, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 07 Apr 2023 15:08:24 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						},
+						{
+							"key": "Content-Length",
+							"value": "53"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"type\": \"BAD_REQUEST\",\n    \"message\": \"User already exist\"\n}"
+				},
+				{
+					"id": "f9659057-b3f1-43b2-ad72-cf7969c3daad",
+					"name": "token response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Test_USER",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "mowen82253@marikuza.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "1234123",
+									"type": "text"
+								},
+								{
+									"key": "deviceId",
+									"value": "test-device",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/api/signup",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"signup"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type, Authorization, X-Requested-With"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "PUT, POST, GET, DELETE, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 07 Apr 2023 15:09:44 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						},
+						{
+							"key": "Content-Length",
+							"value": "391"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"access\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6InRlc3QtZGV2aWNlIiwiaWQiOjgsImlhdCI6MTY4MDg4MDE4NCwiZXhwIjoxNjgwOTE2MTg0fQ.-uwk-oCOctMi5y3EUMvwdOw3ZfusFAEzxmJmFPUW0BU\",\n    \"refresh\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6InRlc3QtZGV2aWNlIiwiaWQiOjgsImlhdCI6MTY4MDg4MDE4NCwiZXhwIjoxNjgyMzgwMTg0fQ.t3WpFdIEuj_D1sOTVxuYELkUYdd45jLUfDBjfQVc51M\",\n    \"expiresIn\": \"36000000\"\n}"
+				}
+			]
+		},
+		{
+			"name": "login",
+			"id": "4abf096d-3ee3-4f37-aac5-4b180b896504",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "email",
+							"value": "mowen82253@marikuza.com",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "1234123",
+							"type": "text"
+						},
+						{
+							"key": "deviceId",
+							"value": "testing",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{ApiHost}}/auth/login",
+					"host": [
+						"{{ApiHost}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "c158b153-ec34-4990-bdbf-acd8594e848f",
+					"name": "login",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "mowen82253@marikuza.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "1234123",
+									"type": "text"
+								},
+								{
+									"key": "deviceId",
+									"value": "testing",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/api/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type, Authorization, X-Requested-With"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "PUT, POST, GET, DELETE, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 08 Apr 2023 10:36:15 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						},
+						{
+							"key": "Content-Length",
+							"value": "379"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"access\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6InRlc3RpbmciLCJpZCI6OCwiaWF0IjoxNjgwOTUwMTc1LCJleHAiOjE2ODA5ODYxNzV9.f1N8mSKL-iidYu0WgtxwjkaN7yOWhdhVDMbBZS6Ifjg\",\n    \"refresh\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6InRlc3RpbmciLCJpZCI6OCwiaWF0IjoxNjgwOTUwMTc1LCJleHAiOjE2ODI0NTAxNzV9.nUeyt0aub2LmlWba-IxRSg9nudANh5tDTOACMcQye8I\",\n    \"expiresIn\": \"36000000\"\n}"
+				}
+			]
+		},
+		{
+			"name": "use refresh token",
+			"id": "2c199a5e-68f9-4345-bff3-add4310648ee",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "refreshToken",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6InRlc3RpbmciLCJpZCI6OCwiaWF0IjoxNjgwOTQ5NTU0LCJleHAiOjE2ODA5ODU1NTR9.OQV8B98qlD9kCAN0_nspmIk8v4RpaDSmgY-BCSQjl18",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{ApiHost}}/auth/refresh-token",
+					"host": [
+						"{{ApiHost}}"
+					],
+					"path": [
+						"auth",
+						"refresh-token"
+					]
+				}
+			},
+			"response": [
+				{
+					"id": "549a3b9b-6a69-4290-a809-8c4ed93f0faf",
+					"name": "use refresh token",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "refreshToken",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6InRlc3RpbmciLCJpZCI6OCwiaWF0IjoxNjgwOTUwMTgzLCJleHAiOjE2ODI0NTAxODN9.2xTpNxka2dYLEvTHxqsUR_z44g6hi50p-eoA76gYJ6E",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/api/refresh-token",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"refresh-token"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type, Authorization, X-Requested-With"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "PUT, POST, GET, DELETE, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 08 Apr 2023 10:36:31 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"key": "Keep-Alive",
+							"value": "timeout=5"
+						},
+						{
+							"key": "Content-Length",
+							"value": "379"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"access\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6InRlc3RpbmciLCJpZCI6OCwiaWF0IjoxNjgwOTUwMTkxLCJleHAiOjE2ODA5ODYxOTF9.issYbElVqSO9StcRiQp_7wWjzCpEXzba-WwMmw1KfrA\",\n    \"refresh\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXZpY2VJZCI6InRlc3RpbmciLCJpZCI6OCwiaWF0IjoxNjgwOTUwMTkxLCJleHAiOjE2ODI0NTAxOTF9.k2xf9diZ8A23Q81h9ES6R8JoWhZbvUgyhsV8WJBczqY\",\n    \"expiresIn\": \"36000000\"\n}"
+				}
+			]
+		},
+		{
+			"name": "update user",
+			"id": "f93be1fd-823c-43f8-8def-b99a412e25e8",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjVkZjFmOTQ1ZmY5MDZhZWFlZmE5M2MyNzY5OGRiNDA2ZDYwNmIwZTgiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI5MzQzODM0NjE0ODQtZ3NmNGIwZHA1cDdranIxNTUwazR2NmhndDZzbG1uYmMuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI5MzQzODM0NjE0ODQtZ3NmNGIwZHA1cDdranIxNTUwazR2NmhndDZzbG1uYmMuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTE4MjUwMDIwNDk2ODg3NjI2NTciLCJlbWFpbCI6InplbGVua28uZGFuaWxAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJBNmJVU2w5WkpRbERLajZwUy1YdnhBIiwibmFtZSI6ItCU0LDQvdC40LvQviDQl9C10LvQtdC90LrQviIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BR05teXhiNjFTd1N1TVdSUW12TFNjV3p3akI3Yk5mSG5CbFZReF9VWmpLZXJnPXM5Ni1jIiwiZ2l2ZW5fbmFtZSI6ItCU0LDQvdC40LvQviIsImZhbWlseV9uYW1lIjoi0JfQtdC70LXQvdC60L4iLCJsb2NhbGUiOiJydSIsImlhdCI6MTY3ODg5NzE3MSwiZXhwIjoxNjc4OTAwNzcxfQ.mlHgD296AbXF7gfy3BZygqqy-vwXnmuW6ylgkwBGK0gmMp_nUPOumbOyNEgR8ZjvkXVZLshHZWY2QpOPNHEoh6AKMwFgdX63gqT0jJUs3aPZOWO8Cdl4u9hiFfh4cf-4pLqXCCHld41opvfc_nb6JX_6P1mCPbW-ZC7x4Y4M4VI9lk7n-DHoObSGutQ4HDaRwOg55YNT6NuzYSSzhK8ce2yyHaeHEXULvwjmAWuYvWSOROOXOascwv2AQG8aZ0_O-tSEufOMmnJz8VNAk793SZxiRetCPwD2JZN1JIeEWVBhpbFZ2QKn3eMUJ1WHnaZYzLqtTJ1YwBbavFMX3-isiQ",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "new_name",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{ApiHost}}/user/update",
+					"host": [
+						"{{ApiHost}}"
+					],
+					"path": [
+						"user",
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get profile",
+			"id": "9a7c6906-3d7a-4ab7-aab8-61611b379dd7",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "8b131e20-906e-461f-9348-c363abfe8f20",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "ab6130b3-cbe3-4222-bd6e-af23aa731783",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "fa3158ad-0fb0-4265-b1c7-1ea2e04d7b85",
+			"key": "ApiHost",
+			"value": "http://localhost:9200/api\n",
+			"type": "string"
+		}
+	]
+}
