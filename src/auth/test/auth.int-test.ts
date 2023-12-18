@@ -251,4 +251,28 @@ describe('Auth module (integration)', () => {
       );
     });
   });
+  describe('createSession', () => {
+    it('should create session and return tokens', async () => {
+      const { id } = await prisma.user.findFirst();
+      jest.spyOn(tokenService, 'getPair').mockImplementation(async () => {
+        return {
+          refresh: 'refresh',
+          access: 'access',
+        };
+      });
+      await expect(
+        service.createSession(id, 'testDevice'),
+      ).resolves.toStrictEqual({
+        refresh: 'refresh',
+        access: 'access',
+      });
+      const session = await prisma.auth.findFirst({
+        where: {
+          userId: id,
+          deviceId: 'testDevice',
+        },
+      });
+      expect(session).toBeDefined();
+    });
+  });
 });
