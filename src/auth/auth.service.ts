@@ -30,8 +30,10 @@ export class AuthService {
     const confirmation = await this.model.findConfirmation(email);
     if (!confirmation) {
       await this.model.createConfirmation(code, email);
-    } else {
+    } else if (!confirmation.isConfirmed) {
       await this.model.changeConfirmationCode(confirmation.id, code);
+    } else {
+      throw new Conflict('Email already confirmed');
     }
     // INFO: Returning code, while sendgrid mailing is disabled
     return { message: 'ok', email, code };

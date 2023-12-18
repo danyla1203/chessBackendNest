@@ -4,6 +4,7 @@ services:
   db:
     image: postgres:13
     container_name: test-database
+    restart: always
     healthcheck:
       test: /usr/bin/pg_isready
       interval: 5s

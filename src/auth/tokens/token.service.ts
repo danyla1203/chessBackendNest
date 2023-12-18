@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { google } from 'googleapis';
+import { Tokens } from './token.entities';
 
 @Injectable()
 export class TokenService {
@@ -39,7 +40,7 @@ export class TokenService {
     if (!token) throw new BadRequestException('Provide token');
     return this.parseToken(token);
   }
-  public async getPair(id: number, deviceId: string) {
+  public async getPair(id: number, deviceId: string): Promise<Tokens> {
     const access = await this.jwt.signAsync(
       { id, deviceId },
       { secret: this.jwtSecret, expiresIn: this.accessExp },

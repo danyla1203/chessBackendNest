@@ -16,47 +16,50 @@ model Auth {
   user         User     @relation(fields: [userId], references: [id])
 }
 
-model Confirmations {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique()
-  code         String
-  isConfirmed  Boolean  @default(false)
+model Confirmation {
+  id          Int     @id @default(autoincrement())
+  email       String  @unique()
+  user        User?
+  code        String
+  isConfirmed Boolean @default(false)
 }
 
 model Game {
-  id            Int    @id @default(autoincrement())
+  id            Int          @id @default(autoincrement())
   maxTime       Int
   timeIncrement Int
-  sideSelecting String @db.VarChar
+  sideSelecting String       @db.VarChar
   isDraw        Boolean
   players       UserInGame[]
   moves         Json
 }
 
 model UserInGame {
-  side          String
-  isWinner      Boolean
-  userId        Int
-  user          User   @relation(fields: [userId], references: [id])
-  gameId        Int
-  game          Game @relation(fields: [gameId], references: [id])
+  side     String
+  isWinner Boolean
+  userId   Int
+  user     User    @relation(fields: [userId], references: [id])
+  gameId   Int
+  game     Game    @relation(fields: [gameId], references: [id])
 
   @@id([userId, gameId])
 }
+
 model User {
-  id       Int    @id @default(autoincrement())
-  name     String @db.VarChar
-  email    String @unique() @db.VarChar
-  password String @db.VarChar
-  auth     Auth[]
-  players  UserInGame[]
-  messages LobbyMessage[]
+  id              Int            @id @default(autoincrement())
+  name            String         @db.VarChar
+  email           String         @unique() @db.VarChar
+  password        String         @db.VarChar
+  auth            Auth[]
+  players         UserInGame[]
+  messages        LobbyMessage[]
+  confirmation    Confirmation  @relation(fields: [id], references: [id])
 }
 
 model LobbyMessage {
-  id      Int     @id @default(autoincrement())
-  text    String  @db.Text
-  date    DateTime @default(dbgenerated("(now() + '10:00:00'::interval)")) @db.Timestamptz(6)
-  userId  Int
-  user    User    @relation(fields: [userId], references: [id])
+  id     Int      @id @default(autoincrement())
+  text   String   @db.Text
+  date   DateTime @default(dbgenerated("(now() + '10:00:00'::interval)")) @db.Timestamptz(6)
+  userId Int
+  user   User     @relation(fields: [userId], references: [id])
 }
