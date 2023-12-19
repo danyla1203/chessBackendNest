@@ -17,7 +17,10 @@ export class UserService {
     const user = await this.model.findProfileByEmail(createUserDto.email);
     if (user) throw new ConflictException('User already exists');
 
-    const userRecord = await this.model.createUser(createUserDto);
+    const userRecord = await this.model.createUser(
+      confirmation.id,
+      createUserDto,
+    );
 
     return this.authService.createSession(
       userRecord.id,
