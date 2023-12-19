@@ -90,4 +90,28 @@ describe('UserService', () => {
       expect(userItem).toBeDefined();
     });
   });
+  describe('profile', () => {
+    it('should return user profile', async () => {
+      const { id, name, email } = await prisma.user.findFirst();
+      expect(service.profile(id)).resolves.toStrictEqual({
+        id,
+        name,
+        email,
+      });
+    });
+  });
+  describe('update', () => {
+    it('should update and return user', async () => {
+      const user = await prisma.user.findFirst();
+      const newData = {
+        name: faker.internet.userName(),
+      };
+      const expected = {
+        name: newData.name,
+        email: user.email,
+        id: user.id,
+      };
+      expect(service.update(user.id, newData)).resolves.toStrictEqual(expected);
+    });
+  });
 });
