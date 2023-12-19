@@ -81,6 +81,7 @@ async function generateData() {
       });
     }
   }
+  console.log('end');
 }
 
 async function main() {
