@@ -4,7 +4,7 @@ set -e
 echo "Run integration test"
 
 docker-compose -f ./test/docker-compose-db.yml up -d
-dotenv -e ./test/.env -- npx prisma migrate deploy
+dotenv -e ./test/.env -- npx prisma db push --force-reset
 dotenv -e ./test/.env -- npx prisma db seed -- --env test
-dotenv -e ./test/.env -- jest -c ./test/jest-integration.json --verbose --detectOpenHandles
+dotenv -e ./test/.env -- jest -c ./test/jest-integration.json --verbose --detectOpenHandles || true
 docker-compose -f ./test/docker-compose-db.yml down

@@ -46,14 +46,15 @@ model UserInGame {
 }
 
 model User {
-  id              Int            @id @default(autoincrement())
-  name            String         @db.VarChar
-  email           String         @unique() @db.VarChar
-  password        String         @db.VarChar
-  auth            Auth[]
-  players         UserInGame[]
-  messages        LobbyMessage[]
-  confirmation    Confirmation  @relation(fields: [id], references: [id])
+  id             Int            @id @default(autoincrement())
+  name           String         @db.VarChar
+  email          String         @unique() @db.VarChar
+  password       String         @db.VarChar
+  auth           Auth[]
+  players        UserInGame[]
+  messages       LobbyMessage[]
+  confirmationId Int            @unique
+  confirmation   Confirmation   @relation(fields: [confirmationId], references: [id])
 }
 
 model LobbyMessage {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from '../prisma.service';
 import { CreateUserDto } from './dto';
 import { Confirmation } from '@prisma/client';
 import { UserFields, UserGames, userFields } from './entities';
@@ -8,13 +8,17 @@ import { UserFields, UserGames, userFields } from './entities';
 export class UserModel {
   constructor(private readonly prisma: PrismaService) {}
 
-  public createUser(user: CreateUserDto): Promise<UserFields> {
+  public createUser(
+    confirmationId: number,
+    user: CreateUserDto,
+  ): Promise<UserFields> {
     return this.prisma.user.create({
       select: userFields,
       data: {
         name: user.name,
         email: user.email,
         password: user.password,
+        confirmationId,
       },
     });
   }
