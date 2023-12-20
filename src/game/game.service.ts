@@ -20,6 +20,7 @@ import {
   Message,
 } from './entities/game';
 import { GameModel } from './model';
+import { GameResult } from './entities/game/game.types';
 
 @Injectable()
 export class GameService {
@@ -28,26 +29,27 @@ export class GameService {
     private readonly model: GameModel,
   ) {}
 
+  private async injectableSaveGame(
+    pl1: Player,
+    pl2: Player,
+    result: GameResult,
+    winner = false,
+  ) {
+    if (!pl1.authorized || !pl2.authorized) return null;
+    return winner
+      ? await this.model.saveGameWithWinner({
+          ...result,
+          winner: pl1,
+          looser: pl2,
+        })
+      : await this.model.saveDraw({ ...result, pl1, pl2 });
+  }
+
   public createGame(player: Client, config: CreateGameDto): Game {
-    const saveDraw = async (pl1: Player, pl2: Player, drawData: DrawGame) => {
-      if (pl1.authorized && pl2.authorized) {
-        await this.model.saveDraw(drawData);
-      }
-    };
-    const saveGameWithWinner = async (
-      winner: Player,
-      looser: Player,
-      winnerData: GameWithWinner,
-    ) => {
-      if (winner.authorized && looser.authorized) {
-        await this.model.saveGameWithWinner(winnerData);
-      }
-    };
     const newGame = new Game(
       player,
       config,
-      saveDraw.bind(this),
-      saveGameWithWinner.bind(this),
+      this.injectableSaveGame.bind(this),
     );
     this.list.addGameToLobby(newGame);
     return newGame;
