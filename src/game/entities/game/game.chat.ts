@@ -13,7 +13,7 @@ export type Message = {
 export class GameChat {
   messages: Message[] = [];
 
-  addMessage(message: string, { id, name }: Client) {
+  public addMessage(message: string, { id, name }: Client) {
     const messageObj = {
       id: Math.floor(Math.random() * 100000),
       text: message,
