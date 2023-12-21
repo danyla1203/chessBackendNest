@@ -3,7 +3,7 @@ import { GameGateway } from './game.gateway';
 import { GameList } from './game.list';
 import { GameService } from './game.service';
 import { GameModel } from './model';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from '../prisma.service';
 
 @Module({
   imports: [],

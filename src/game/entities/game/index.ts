@@ -7,6 +7,7 @@ import {
   Board,
   CellUpdate,
   Config,
+  GameResult,
   GameData,
   GameWithWinner,
   DrawGame,
@@ -30,4 +31,5 @@ export {
   DrawGame,
   Move,
   Message,
+  GameResult,
 };

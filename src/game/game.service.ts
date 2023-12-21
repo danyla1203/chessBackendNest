@@ -13,14 +13,12 @@ import { GameList } from './game.list';
 import { Client, Player } from './entities';
 import {
   Game,
-  DrawGame,
   GameData,
-  GameWithWinner,
   FiguresCellState,
   Message,
+  GameResult,
 } from './entities/game';
 import { GameModel } from './model';
-import { GameResult } from './entities/game/game.types';
 
 @Injectable()
 export class GameService {
@@ -60,7 +58,7 @@ export class GameService {
     if (!game) throw new NotFoundException('Game not found');
     const pl1 = game.players[0];
     if (player.userId && pl1.userId === player.userId) {
-      throw new ConflictException('Couldn"t join');
+      throw new ConflictException('You are already in game');
     }
 
     game.addPlayer(player);
@@ -120,7 +118,9 @@ export class GameService {
 
   public purposeDraw(gameId: number, client: Client): DrawAgreement {
     const game = this.findGameById(gameId);
-    const player = game.players[client.id];
+    const player = game.players.find((pl) => pl.id === client.id);
+    if (game.draw[player.side])
+      throw new ConflictException('Draw purpose already set');
     game.setDrawPurposeFrom(player);
     const purpose =
       player.side === 'w' ? { w: true, b: false } : { w: false, b: true };
@@ -134,10 +134,10 @@ export class GameService {
   ): Promise<DrawAgreement> {
     const game = this.findGameById(gameId);
     const draw = game.draw;
-    const player = game.players[client.id];
+    const player = game.players.find((pl) => pl.id === client.id);
 
-    if (draw[player.side]) throw new ConflictException('Draw already set');
-    if (!draw.w && !draw.b) throw new ConflictException('Draw purpose not set');
+    if (!draw.w && !draw.b)
+      throw new ConflictException('Draw purpose wasnt set');
 
     game.setDrawPurposeFrom(player);
     await game.endGameByDraw();
@@ -149,22 +149,22 @@ export class GameService {
     const game = this.findGameById(gameId);
     const draw = game.draw;
 
-    if (!draw.w && !draw.b) throw new ConflictException('Draw purpose not set');
+    if (!draw.w && !draw.b)
+      throw new ConflictException('Draw purpose wasnt set');
 
     game.rejectDraw();
     return { w: false, b: false };
   }
 
-  public addTime(gameId: number, player: Client): TimeUpdate {
+  public addTimeToAnotherPlayer(gameId: number, player: Client): TimeUpdate {
     const game = this.findGameById(gameId);
-    const toPlayer = Object.values(game.players).find(
-      (pl) => pl.id !== player.id,
-    );
+    const players = game.players;
+    const toPlayer = players.find((pl) => pl.id !== player.id);
     game.addTimeTo(toPlayer, game.config.timeIncrement);
 
-    const pl1 = game.players[toPlayer.id];
-    const pl2 = game.players[player.id];
-
-    return { [pl1.side]: pl1.time, [pl2.side]: pl2.time };
+    return {
+      [players[0].side]: players[0].time,
+      [players[1].side]: players[1].time,
+    };
   }
 }

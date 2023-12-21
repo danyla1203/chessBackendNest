@@ -1,42 +1,23 @@
-import { faker } from '@faker-js/faker';
 import { Client } from '../../Client';
 import { Game } from '../game';
-import { Config } from '../game.types';
 import { GameProcess } from '../process/game.process';
 import { GameChat } from '../game.chat';
 import { InitedGameData } from 'src/game/dto';
-import { getFigureCellState } from './utils';
 import { ConflictException } from '@nestjs/common';
-
-const Client = (
-  authorized = true,
-  userId = parseInt(faker.string.nanoid(8)),
-): Client => {
-  return {
-    id: faker.string.nanoid(8),
-    name: faker.internet.userName(),
-    authorized,
-    userId,
-    join: jest.fn(),
-    emit: jest.fn(),
-    toRoom: jest.fn(),
-  };
-};
-const Config = (side: 'w' | 'b' | 'rand' = 'w'): Config => {
-  return {
-    side,
-    time: faker.number.int({ min: 3600, max: 100000 }),
-    timeIncrement: faker.number.int({ min: 60, max: 10000 }),
-  };
-};
+import { Config } from '../game.types';
+import {
+  generateConfig,
+  generateClient,
+  getFigureCellState,
+} from '../../../test/generators';
 
 describe('Game entity (unit)', () => {
   let game: Game;
   let config: Config;
   let fClient: Client;
   beforeEach(() => {
-    config = Config();
-    fClient = Client();
+    config = generateConfig();
+    fClient = generateClient();
     game = new Game(fClient, config, jest.fn());
   });
   afterEach(() => {
@@ -90,7 +71,7 @@ describe('Game entity (unit)', () => {
   });
   describe('getInitedGameData', () => {
     it('return game data with board state on game init', () => {
-      const player = Client();
+      const player = generateClient();
       const pickedSide = Object.values(game.players)[0].side;
       const side = pickedSide === 'w' ? 'b' : 'w';
       game.players.push({ ...player, side, time: game.config.time });
@@ -113,7 +94,7 @@ describe('Game entity (unit)', () => {
   });
   describe('addPlayer', () => {
     it('should add new player to game.players array', () => {
-      const cl = Client();
+      const cl = generateClient();
       const nonPickedSide = game.players[0].side === 'w' ? 'b' : 'w';
       game.addPlayer(cl);
       expect(game.players[1]).toStrictEqual({
@@ -125,7 +106,7 @@ describe('Game entity (unit)', () => {
   });
   describe('start', () => {
     it('should set tick rate for white side', () => {
-      const player = Client();
+      const player = generateClient();
       const pickedSide = Object.values(game.players)[0].side;
       const side = pickedSide === 'w' ? 'b' : 'w';
       game.players.push({ ...player, side, time: game.config.time });
@@ -142,7 +123,7 @@ describe('Game entity (unit)', () => {
   });
   describe('changeTickingSide', () => {
     it('should change ticking side', () => {
-      const player = Client();
+      const player = generateClient();
       const pickedSide = Object.values(game.players)[0].side;
       const side = pickedSide === 'w' ? 'b' : 'w';
       game.players.push({ ...player, side, time: game.config.time });
@@ -163,7 +144,7 @@ describe('Game entity (unit)', () => {
   });
   describe('timerTick', () => {
     it('should reduce time and emit time updates', () => {
-      const player = Client();
+      const player = generateClient();
       const pickedSide = Object.values(game.players)[0].side;
       const side = pickedSide === 'w' ? 'b' : 'w';
       game.players.push({ ...player, side, time: game.config.time });
@@ -175,7 +156,7 @@ describe('Game entity (unit)', () => {
       expect(pl2.emit).toBeCalled();
     });
     it('should end game if time is over', () => {
-      const player = Client();
+      const player = generateClient();
       const pickedSide = Object.values(game.players)[0].side;
       const side = pickedSide === 'w' ? 'b' : 'w';
       game.players.push({ ...player, side, time: game.config.time });
@@ -192,7 +173,7 @@ describe('Game entity (unit)', () => {
   });
   describe('endGameByDraw', () => {
     it('should clear interval and save game', () => {
-      const player = Client();
+      const player = generateClient();
       const pickedSide = Object.values(game.players)[0].side;
       const side = pickedSide === 'w' ? 'b' : 'w';
       game.players.push({ ...player, side, time: game.config.time });
@@ -217,7 +198,7 @@ describe('Game entity (unit)', () => {
   });
   describe('endGame (with winner)', () => {
     it('should clear intervals, and save game', () => {
-      const player = Client();
+      const player = generateClient();
       const pickedSide = Object.values(game.players)[0].side;
       const side = pickedSide === 'w' ? 'b' : 'w';
       game.players.push({ ...player, side, time: game.config.time });
@@ -257,7 +238,7 @@ describe('Game entity (unit)', () => {
     });
     it('should throw Conflict err if waiting player make a turn', () => {
       game.isActive = true;
-      const player = Client();
+      const player = generateClient();
       const pickedSide = Object.values(game.players)[0].side;
       const side = pickedSide === 'w' ? 'b' : 'w';
       game.players.push({ ...player, side, time: game.config.time });

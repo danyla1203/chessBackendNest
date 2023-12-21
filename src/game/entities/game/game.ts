@@ -3,16 +3,7 @@ import { CompletedMove, InitedGameData } from '../../dto';
 import { GameProcess } from './process/game.process';
 import { Client } from '../Client';
 import { Player } from '../Player';
-import {
-  Cell,
-  Config,
-  DrawGame,
-  Figure,
-  GameData,
-  GameResult,
-  GameWithWinner,
-  Move,
-} from './game.types';
+import { Cell, Config, Figure, GameData, GameResult, Move } from './game.types';
 import { GameChat } from './game.chat';
 
 export class Game {
