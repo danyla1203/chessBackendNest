@@ -155,7 +155,7 @@ export class Game {
       throw new ConflictException('Not your turn');
     }
 
-    const from: Cell = this.process.board.board.get(figure);
+    const from: Cell = this.process.getBoard().board.get(figure);
     const turnResult = this.process.makeTurn(figure, cell);
 
     const nextPlayer = this.players.find((player) => player.id !== playerId);
