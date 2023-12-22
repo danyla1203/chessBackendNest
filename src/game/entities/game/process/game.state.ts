@@ -41,9 +41,6 @@ export class GameState {
   get side() {
     return this.sideToTurn;
   }
-  set side(side: 'w' | 'b') {
-    this.sideToTurn = side;
-  }
   setNextTurnSide() {
     this.sideToTurn = this.sideToTurn == 'w' ? 'b' : 'w';
   }
@@ -51,7 +48,7 @@ export class GameState {
     this.sideToTurn = side;
   }
   get shah() {
-    return this.shahData;
+    return this.shahData ? { ...this.shahData } : null;
   }
 
   public setShahData(toSide: 'w' | 'b', byFigure: Figure): void {
@@ -76,7 +73,7 @@ export class GameState {
     this.strikeAroundKn[side].add(figure);
   }
   public removeFigure(side: 'w' | 'b', figure: Figure): void {
-    if (side == 'w') {
+    if (side === 'w') {
       this.whiteBoard.delete(figure);
       this.possibleShahes['b'].delete(figure);
       this.strikeAroundKn['b'].delete(figure);

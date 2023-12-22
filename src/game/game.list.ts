@@ -26,9 +26,9 @@ export class GameList {
     this.games.push(this.lobby[index]);
     this.lobby.splice(index, 1);
   }
-  public removeGameFromLobbyByPlayer(client: Client): void {
+  public removeGameFromLobbyByPlayer({ id }: Client): void {
     this.lobby = this.lobby.filter((game) => {
-      return !(client.id in game.players);
+      return game.players.find((pl) => pl.id !== id);
     });
   }
 }

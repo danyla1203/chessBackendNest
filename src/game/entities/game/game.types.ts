@@ -35,7 +35,7 @@ export type GameData = {
   players: Player[];
   config: Config;
 };
-type GameResult = {
+export type GameResult = {
   id: number;
   config: Config;
   moves: Move[];

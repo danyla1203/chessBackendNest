@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { WsValidationFilter } from '../tools/WsValidationFilter';
 import { GameService } from './game.service';
-import { AuthService, TokenService } from 'src/auth';
+import { AuthService, TokenService } from '../auth';
 import {
   CompletedMove,
   ConnectToGameDto,
@@ -173,7 +173,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @PlayerSocket() player: Client,
     @MessageBody() { gameId }: { gameId: number },
   ) {
-    const result = this.service.addTime(gameId, player);
+    const result = this.service.addTimeToAnotherPlayer(gameId, player);
     this.server.to(`game:${gameId}`).emit('game:time', result);
   }
 }
