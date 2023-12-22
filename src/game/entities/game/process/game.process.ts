@@ -73,7 +73,7 @@ export class GameProcess {
   }
 
   public set moveSide(side: 'w' | 'b') {
-    this.store.side = side;
+    this.store.turnSide = side;
   }
 
   public removeShah(): void {
@@ -459,9 +459,7 @@ export class GameProcess {
     let knCell = board.get('Kn');
 
     const strike: null | StrikedData = this.isStrikeAfterMove(cell);
-    if (strike) {
-      possibleShahes.delete(strike.figure);
-    }
+    if (strike) this.store.removePossibleShah(this.store.side, figure);
 
     board.set(figure, cell);
     if (figure === 'Kn') knCell = cell;
