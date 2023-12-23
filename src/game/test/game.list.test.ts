@@ -31,4 +31,19 @@ describe('GameList (unit)', () => {
     list.removeGameFromLobbyByPlayer(cl);
     expect(list.lobby).toHaveLength(9);
   });
+  it('should remove a game from the lobby by ID', () => {
+    const gameToAdd: Game = { id: 1, players: [] } as Game;
+    list.addGameToLobby(gameToAdd);
+    list.removeGameFromLobby(1);
+    const foundGame = list.findInLobby(1);
+    expect(foundGame).toBeUndefined();
+  });
+
+  it('should move the removed game to the games array', () => {
+    const gameToAdd: Game = { id: 1, players: [] } as Game;
+    list.addGameToLobby(gameToAdd);
+    list.removeGameFromLobby(1);
+    expect(list.games.length).toBe(1);
+    expect(list.games[0]).toEqual(gameToAdd);
+  });
 });
