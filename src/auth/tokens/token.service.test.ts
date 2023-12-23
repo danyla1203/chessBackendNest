@@ -3,6 +3,7 @@ import { BadRequestException } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { TokenService } from './token.service';
+import { faker } from '@faker-js/faker';
 
 describe('TokenService', () => {
   let service: TokenService;
@@ -23,7 +24,37 @@ describe('TokenService', () => {
     service = moduleRef.get<TokenService>(TokenService);
     jwtService = moduleRef.get<JwtService>(JwtService);
   });
-
+  describe('parseToken', () => {
+    const payload = {
+      id: faker.string.nanoid(8),
+      deviceId: faker.string.nanoid(10),
+    };
+    it('should return parsed token', async () => {
+      jest.spyOn(jwtService, 'verify').mockImplementationOnce(() => payload);
+      const validToken = faker.string.uuid();
+      expect(service.parseToken(validToken)).toStrictEqual(payload);
+    });
+    describe('should throw bad request err if token is invalid', () => {
+      it('invalid secret', async () => {
+        jest.spyOn(jwtService, 'verify').mockImplementationOnce(() => {
+          throw new Error();
+        });
+        const invalidToken = faker.string.uuid();
+        expect(() => service.parseToken(invalidToken)).toThrow(
+          new BadRequestException('Invalid token'),
+        );
+      });
+      it('should throw bad request err if token is expired', () => {
+        jest.spyOn(jwtService, 'verify').mockImplementationOnce(() => {
+          throw new Error();
+        });
+        const invalidToken = faker.string.uuid();
+        expect(() => service.parseToken(invalidToken)).toThrow(
+          new BadRequestException('Invalid token'),
+        );
+      });
+    });
+  });
   describe('parse auth header', () => {
     it('should return parsed data from token', async () => {
       const result = { id: -1, deviceId: 'test' };
