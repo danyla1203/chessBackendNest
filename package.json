@@ -19,7 +19,7 @@
     "test:integration": "jest -c ./test/jest-integration.json --verbose --detectOpenHandles",
     "test:integration:local": "./test/local-integration.sh",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
+    "test:cov": "./test/local-coverage.sh",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
@@ -78,7 +78,6 @@
       "ts"
     ],
     "rootDir": "src",
-    "testRegex": ".*\\.test\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
