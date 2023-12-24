@@ -2,7 +2,7 @@
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": "../src",
   "testEnvironment": "node",
-  "testRegex": "test.ts$",
+  "testRegex": "(e2e|test|int-test)\\.ts",
   "collectCoverageFrom": [
     "**/*.(t|j)s"
   ],
