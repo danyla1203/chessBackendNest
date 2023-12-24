@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { StripeModule } from 'src/stripe/stripe.module';
+import { StripeModule } from '../stripe/stripe.module';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 

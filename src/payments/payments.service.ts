@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { StripeService } from 'src/stripe/stripe.service';
+import { StripeService } from '../stripe/stripe.service';
 
 @Injectable()
 export class PaymentsService {
