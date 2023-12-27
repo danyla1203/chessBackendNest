@@ -118,5 +118,7 @@ jobs:
           DATABASE_URL: postgresql://danylo:root@localhost:5433/tests
           JWT_SECRET: 'secretKey'
           SG_API_KEY: ${{ secrets.SG_API_KEY }}
+          JWT_ACCESS_EXPIRES: 360s
+          JWT_REFRESH_EXPIRES: 30d
           PORT: 9200
           ENV: dev
