@@ -116,5 +116,7 @@ jobs:
           npm run test:e2e:ci
         env:
           DATABASE_URL: postgresql://danylo:root@localhost:5433/tests
+          JWT_SECRET: 'secretKey'
+          SG_API_KEY: ${{ secrets.SG_API_KEY }}
           PORT: 9200
           ENV: dev
