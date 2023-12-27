@@ -93,6 +93,12 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: 'npm'
       - name: Install dependencies
         run: npm install -g @nestjs/cli & npm i
       - name: Connect to PostgreSQL
