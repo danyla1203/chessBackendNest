@@ -100,7 +100,7 @@ jobs:
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
       - name: Install dependencies
-        run: npm install -g @nestjs/cli & npm сi
+        run: npm install -g @nestjs/cli & npm i
       - name: Connect to PostgreSQL
         run: npx prisma migrate deploy
         env:
