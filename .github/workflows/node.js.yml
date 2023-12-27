@@ -86,7 +86,7 @@ jobs:
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
       - name: Install Nest CLI
-        run: npm install -g @nestjs/cli
+        run: npm install -g @nestjs/cli & npm i
       - name: Run API tests
         run: |
           npm run start:dev & 
