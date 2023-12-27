@@ -85,8 +85,10 @@ jobs:
           curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+      - name: Install Nest CLI
+        run: npm install -g @nestjs/cli
       - name: Run API tests
         run: |
-          npm run start:prod & 
+          npm run start:dev & 
           sleep 30
           postman collection run "${{ github.workspace }}/postman/collections/chess backend API.json"
