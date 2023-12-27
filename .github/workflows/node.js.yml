@@ -78,6 +78,20 @@ jobs:
           DATABASE_URL: postgresql://danylo:root@localhost:5433/tests
   test_e2e:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: danylo
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: tests
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v3
       - name: Install Postman CLI
@@ -85,10 +99,20 @@ jobs:
           curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
-      - name: Install Nest CLI
-        run: npm install -g @nestjs/cli & npm i
+      - name: Install dependencies
+        run: npm install -g @nestjs/cli & npm сi
+      - name: Connect to PostgreSQL
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://danylo:root@localhost:5433/tests
+      - name: Seed database
+        run: npx prisma db seed -- --env test
+        env:
+          DATABASE_URL: postgresql://danylo:root@localhost:5433/tests
       - name: Run API tests
         run: |
           npm run start:dev & 
           sleep 30
           postman collection run "${{ github.workspace }}/postman/collections/chess backend API.json"
+        env:
+          DATABASE_URL: postgresql://danylo:root@localhost:5433/tests
