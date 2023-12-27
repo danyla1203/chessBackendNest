@@ -116,3 +116,5 @@ jobs:
           postman collection run "${{ github.workspace }}/postman/collections/chess backend API.json"
         env:
           DATABASE_URL: postgresql://danylo:root@localhost:5433/tests
+          PORT: 9200
+          ENV: dev
