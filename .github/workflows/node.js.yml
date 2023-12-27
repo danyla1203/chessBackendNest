@@ -93,12 +93,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v3
-      - name: Install Postman CLI
-        run: |
-          curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
-      - name: Login to Postman CLI
-        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
       - name: Install dependencies
         run: npm install -g @nestjs/cli & npm i
       - name: Connect to PostgreSQL
@@ -113,7 +107,7 @@ jobs:
         run: |
           npm run start:dev & 
           sleep 20
-          npm run test:e2e
+          npm run test:e2e:ci
         env:
           DATABASE_URL: postgresql://danylo:root@localhost:5433/tests
           PORT: 9200

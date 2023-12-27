@@ -21,7 +21,8 @@
     "test:watch": "jest --watch",
     "test:cov": "./test/local-coverage.sh",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "./test/local-e2e.sh"
+    "test:e2e": "./test/local-e2e.sh",
+    "test:e2e:ci": "jest -c ./test/jest-e2e.json --verbose --no-cache --forceExit"
   },
   "dependencies": {
     "@nestjs/common": "^10.1.0",
