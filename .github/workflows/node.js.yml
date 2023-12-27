@@ -87,4 +87,6 @@ jobs:
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
       - name: Run API tests
         run: |
+          npm run start:dev & 
+          sleep 60
           postman collection run "${{ github.workspace }}/postman/collections/chess backend API.json"
