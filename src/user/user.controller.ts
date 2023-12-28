@@ -4,7 +4,6 @@ import {
   Post,
   Body,
   Patch,
-  Param,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -34,7 +33,8 @@ export class UserController {
   }
 
   @Patch('')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  @UseGuards(AuthGuard)
+  update(@Request() { user }, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(user.id, updateUserDto);
   }
 }

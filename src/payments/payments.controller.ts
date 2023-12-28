@@ -7,7 +7,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from 'src/auth';
+import { AuthGuard } from '../auth';
 import { PaymentsService } from './payments.service';
 
 @Controller('payments')
