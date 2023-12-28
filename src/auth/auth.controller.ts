@@ -6,6 +6,7 @@ import {
   UseGuards,
   Put,
   Delete,
+  Patch,
 } from '@nestjs/common';
 import { UseRefreshDto, LoginDto } from './dto';
 import { AuthGuard, AuthService } from '.';
@@ -35,7 +36,7 @@ export class AuthController {
   sendVerificationMail(@Body() { email }: { email: string }) {
     return this.authService.sendVerificationMail(email);
   }
-  @Post('verify-email')
+  @Patch('verify-email')
   sendVerificationCode(
     @Body() { code, email }: { code: string; email: string },
   ) {
