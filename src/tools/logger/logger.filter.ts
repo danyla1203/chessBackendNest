@@ -18,6 +18,8 @@ export class LoggerFilter extends BaseExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     if (exception instanceof HttpException) {
       this.loggerService.error(exception.message, '', exception.name);
+    } else {
+      this.loggerService.error('Unhandled error', '');
     }
     super.catch(exception, host);
   }
