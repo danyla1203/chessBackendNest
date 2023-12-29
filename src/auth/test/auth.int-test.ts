@@ -26,6 +26,7 @@ import {
 } from '@nestjs/common';
 import { faker } from '@faker-js/faker';
 import { TokenService } from '../tokens/token.service';
+import { LoggerModule } from '../../tools/logger';
 
 describe('Auth module (integration)', () => {
   let service: AuthService;
@@ -38,6 +39,7 @@ describe('Auth module (integration)', () => {
           secret: 'mockSecret',
           signOptions: { expiresIn: '60s' },
         }),
+        LoggerModule,
         ConfigModule,
       ],
       providers: [AuthService, PrismaService, AuthModel, TokenService],

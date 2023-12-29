@@ -8,6 +8,7 @@ import { faker } from '@faker-js/faker';
 import { ConflictException } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
+import { AppModule } from '../../app.module';
 
 jest.mock('axios', () => null);
 
@@ -17,15 +18,7 @@ describe('UserService', () => {
   let tokenService: TokenService;
   beforeAll(async () => {
     const module = await Test.createTestingModule({
-      imports: [
-        JwtModule.register({
-          secret: 'mockSecret',
-          signOptions: { expiresIn: '60s' },
-        }),
-        ConfigModule.forRoot({ isGlobal: true }),
-        AuthModule,
-      ],
-      providers: [UserService, UserModel, PrismaService],
+      imports: [AppModule],
     }).compile();
 
     tokenService = module.get(TokenService);
