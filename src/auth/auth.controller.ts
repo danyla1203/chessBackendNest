@@ -8,7 +8,13 @@ import {
   Delete,
   Patch,
 } from '@nestjs/common';
-import { UseRefreshDto, LoginDto } from './dto';
+import {
+  UseRefreshDto,
+  LoginDto,
+  VerifyEmail,
+  SendVerificationMail,
+  GoogleCode,
+} from './dto';
 import { AuthGuard, AuthService } from '.';
 
 @Controller('auth')
@@ -33,17 +39,15 @@ export class AuthController {
   }
 
   @Post('send-verification-mail')
-  sendVerificationMail(@Body() { email }: { email: string }) {
+  sendVerificationMail(@Body() { email }: SendVerificationMail) {
     return this.authService.sendVerificationMail(email);
   }
   @Patch('verify-email')
-  sendVerificationCode(
-    @Body() { code, email }: { code: string; email: string },
-  ) {
+  sendVerificationCode(@Body() { code, email }: VerifyEmail) {
     return this.authService.verifyEmail(code, email);
   }
   @Post('/google/oauth')
-  googleOAuth(@Body() { code }: { code: string }) {
+  googleOAuth(@Body() { code }: GoogleCode) {
     return this.authService.googleOAuth(code);
   }
 }
