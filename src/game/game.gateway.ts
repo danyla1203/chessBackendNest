@@ -25,6 +25,7 @@ import {
 } from './dto';
 import { Client, PlayerSocket } from './entities';
 import { IsPlayer } from './guards/isplayer.guard';
+import { Game, Lobby, room } from './EmitTypes';
 
 @WebSocketGateway({ namespace: 'game', cors: true, transports: ['websocket'] })
 @UsePipes(new ValidationPipe())
@@ -39,10 +40,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  async handleDisconnect(client: any) {
+  handleDisconnect(client: any) {
     this.service.removeGameInLobby(client);
     const lobby = this.service.getLobby();
-    this.server.emit('lobby:update', lobby);
+    this.server.emit(Lobby.update, lobby);
   }
 
   async handleConnection(client) {
@@ -60,7 +61,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (e) {
       client.name = 'Anonymous';
     }
-    client.emit('lobby:update', this.service.getLobby());
+    client.emit(Lobby.update, this.service.getLobby());
   }
 
   @SubscribeMessage('create')
@@ -69,11 +70,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() config: CreateGameDto,
   ) {
     const { id } = this.service.createGame(player, config);
-    player.join(`game:${id}`);
-    player.emit(`game:created`, { gameId: id });
+    player.join(room(id));
+    player.emit(Game.created, { gameId: id });
 
     const lobby = this.service.getLobby();
-    this.server.emit('lobby:update', lobby);
+    this.server.emit(Lobby.update, lobby);
   }
 
   @SubscribeMessage('join')
@@ -82,15 +83,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() { gameId }: ConnectToGameDto,
   ) {
     const game = this.service.connectToGame(player, gameId);
-    player.join(`game:${game.id}`);
+    player.join(room(game.id));
 
     for (const player of game.players) {
-      player.emit('game:init-data', game.getInitedGameData(player.id));
+      player.emit(Game.init, game.getInitedGameData(player.id));
     }
-    this.server.to(`game:${game.id}`).emit('game:start');
+    this.server.to(room(game.id)).emit(Game.start);
     game.start();
     const lobby = this.service.getLobby();
-    this.server.emit('lobby:update', lobby);
+    this.server.emit(Lobby.update, lobby);
   }
 
   @SubscribeMessage('move')
@@ -108,10 +109,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const actualState = this.service.getActualGameState(game);
 
-    if (shah) this.server.to(`game:${game.id}`).emit('game:shah', shah);
-    if (mate) this.server.to(`game:${game.id}`).emit('game:mate', mate);
-    if (strike) this.server.to(`game:${game.id}`).emit('game:strike', strike);
-    this.server.to(`game:${game.id}`).emit('game:board-update', actualState);
+    if (shah) this.server.to(room(game.id)).emit(Game.shah, shah);
+    if (mate) this.server.to(room(game.id)).emit(Game.mate, mate);
+    if (strike) this.server.to(room(game.id)).emit(Game.strike, strike);
+    this.server.to(room(game.id)).emit(Game.boardUpdate, actualState);
   }
 
   @SubscribeMessage('chat-message')
@@ -122,7 +123,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const game = this.service.findGameById(gameId);
     const message = this.service.pushMessage(game, text, player);
-    this.server.to(`game:${game.id}`).emit('game:chat-message', message);
+    this.server.to(room(game.id)).emit(Game.message, message);
   }
 
   @SubscribeMessage('surrender')
@@ -135,9 +136,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       gameId,
       player,
     );
-    this.server
-      .to(`game:${game.id}`)
-      .emit('game:surrender', { winner, looser });
+    this.server.to(room(game.id)).emit(Game.surrender, { winner, looser });
   }
 
   @SubscribeMessage('draw_purpose')
@@ -147,7 +146,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() { gameId }: { gameId: number },
   ) {
     const purpose = this.service.purposeDraw(gameId, player);
-    player.toRoom(`game:${gameId}`, 'game:draw_purpose', purpose);
+    player.toRoom(room(gameId), Game.drawPurpose, purpose);
   }
 
   @SubscribeMessage('draw_accept')
@@ -157,14 +156,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() { gameId }: { gameId: number },
   ) {
     await this.service.acceptDraw(gameId, player);
-    this.server.to(`game:${gameId}`).emit('game:draw');
+    this.server.to(room(gameId)).emit(Game.draw);
   }
 
   @SubscribeMessage('draw_reject')
   @UseGuards(IsPlayer)
   rejectPurpose(@MessageBody() { gameId }: { gameId: number }) {
     const result = this.service.rejectDraw(gameId);
-    this.server.to(`game:${gameId}`).emit('game:draw_rejected', result);
+    this.server.to(room(gameId)).emit(Game.rejectDraw, result);
   }
 
   @SubscribeMessage('add_time')
@@ -174,6 +173,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() { gameId }: { gameId: number },
   ) {
     const result = this.service.addTimeToAnotherPlayer(gameId, player);
-    this.server.to(`game:${gameId}`).emit('game:time', result);
+    this.server.to(room(gameId)).emit(Game.addTime, result);
   }
 }
