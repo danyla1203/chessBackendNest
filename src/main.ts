@@ -1,6 +1,7 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { LoggerFilter, LoggerService } from './tools/logger';
 
 async function bootstrap() {
   const allowedOrigin =
@@ -12,8 +13,10 @@ async function bootstrap() {
       origin: allowedOrigin,
     },
   });
+  const { httpAdapter } = app.get(HttpAdapterHost);
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalFilters(new LoggerFilter(new LoggerService(), httpAdapter));
   await app.listen(process.env.PORT);
 }
 bootstrap();

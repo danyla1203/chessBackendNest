@@ -5,10 +5,12 @@ import { GameModule } from './game/game.module';
 import { PaymentsModule } from './payments/payments.module';
 import { UserModule } from './user/user.module';
 import { MailService } from './mail/mail.service';
+import { LoggerModule } from './tools/logger';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    LoggerModule,
     AuthModule,
     GameModule,
     PaymentsModule,
