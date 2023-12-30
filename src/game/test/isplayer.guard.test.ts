@@ -5,17 +5,15 @@ import { GameService } from '../game.service';
 import { Player } from '../entities';
 import { Game } from '../entities/game';
 
-describe('IsPlayer', () => {
+describe('IsPlayer (unit)', () => {
   let guard: IsPlayer;
   let gameService: GameService;
 
   beforeEach(async () => {
-    // Mock the GameService
     const gameServiceMock = {
       findGameById: jest.fn(),
     };
 
-    // Create a testing module with the IsPlayer guard and the mocked GameService
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         IsPlayer,
@@ -26,7 +24,6 @@ describe('IsPlayer', () => {
       ],
     }).compile();
 
-    // Get the instance of the IsPlayer guard and the GameService from the testing module
     guard = module.get<IsPlayer>(IsPlayer);
     gameService = module.get<GameService>(GameService);
   });
@@ -36,7 +33,6 @@ describe('IsPlayer', () => {
   });
 
   it('should allow access when the player is in the game', () => {
-    // Mock the WebSocket context
     const wsContextMock: ExecutionContext = {
       switchToWs: jest.fn().mockReturnValue({
         getClient: jest.fn().mockReturnValue({ id: '11' }),
@@ -44,19 +40,16 @@ describe('IsPlayer', () => {
       }),
     } as unknown as ExecutionContext;
 
-    // Mock the GameService to return a game with the specified player
     jest.spyOn(gameService, 'findGameById').mockReturnValue({
       id: 1,
       players: [{ id: '11' } as Player],
     } as Game);
 
-    // Call the canActivate method and expect it to return true
     const result = guard.canActivate(wsContextMock);
     expect(result).toBe(true);
   });
 
   it('should deny access when the player is not in the game', () => {
-    // Mock the WebSocket context
     const wsContextMock: ExecutionContext = {
       switchToWs: jest.fn().mockReturnValue({
         getClient: jest.fn().mockReturnValue({ id: '1' }),
@@ -64,13 +57,11 @@ describe('IsPlayer', () => {
       }),
     } as unknown as ExecutionContext;
 
-    // Mock the GameService to return a game without the specified player
     jest.spyOn(gameService, 'findGameById').mockReturnValue({
       id: 1,
       players: [{ id: '-1' } as Player],
     } as Game);
 
-    // Call the canActivate method and expect it to return false
     const result = guard.canActivate(wsContextMock);
     expect(result).toBe(false);
   });
