@@ -3,9 +3,8 @@ import { GameGateway } from '../game.gateway';
 import { GameService } from '../game.service';
 import { AuthService, TokenService } from '../../auth';
 import { Game, Lobby, room } from '../EmitTypes';
-import { faker, pl } from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { UserFields } from 'src/user/entities';
-import { cli } from 'winston/lib/winston/config';
 import { generateConfig } from './generators';
 
 jest.mock('../game.service');
