@@ -1,4 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import { UserModel } from './model';
 import { AuthService, Tokens } from '../auth';
@@ -16,6 +17,8 @@ export class UserService {
 
     const user = await this.model.findProfileByEmail(createUserDto.email);
     if (user) throw new ConflictException('User already exists');
+
+    createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
 
     const userRecord = await this.model.createUser(
       confirmation.id,
