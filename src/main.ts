@@ -5,7 +5,7 @@ import { LoggerFilter, LoggerService } from './tools/logger';
 
 async function bootstrap() {
   const allowedOrigin =
-    process.env.ENV === 'dev' ? 'http://localhost:8080' : '*';
+    process.env.ENV === 'dev' ? 'http://localhost:3000' : '*';
   const app = await NestFactory.create(AppModule, {
     bodyParser: true,
     rawBody: true,
@@ -14,6 +14,7 @@ async function bootstrap() {
     },
   });
   const { httpAdapter } = app.get(HttpAdapterHost);
+
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new LoggerFilter(new LoggerService(), httpAdapter));
