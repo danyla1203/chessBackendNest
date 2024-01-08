@@ -7,6 +7,7 @@ import {
   Put,
   Delete,
   Patch,
+  Get,
 } from '@nestjs/common';
 import {
   UseRefreshDto,
@@ -55,6 +56,12 @@ export class AuthController {
     this.logger.log('Verify email by code', 'AuthController');
     return this.authService.verifyEmail(code, email);
   }
+
+  @Get('/google/oauth/link')
+  async getGoogleOauthLink() {
+    return { link: await this.authService.getGoogleOauthLink() };
+  }
+
   @Post('/google/oauth')
   googleOAuth(@Body() { code }: GoogleCode) {
     this.logger.log('Google OAuth by code', 'AuthController');
