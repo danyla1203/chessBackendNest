@@ -1,4 +1,4 @@
-import { Client, PlayerSocket } from './Client';
+import { Client, ClientSocket } from './Client';
 import { Player } from './Player';
 
-export { Client, PlayerSocket, Player };
+export { Client, ClientSocket, Player };

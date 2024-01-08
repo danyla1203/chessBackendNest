@@ -33,6 +33,20 @@ export class TokenService {
     }
   }
 
+  public anonymousToken(id: number) {
+    const token = this.jwt.sign(
+      { id, name: 'Anonymous' },
+      {
+        secret: this.jwtSecret,
+        expiresIn: this.accessExp,
+      },
+    );
+    return {
+      token,
+      exp: this.accessExp,
+    };
+  }
+
   public parseAuthHeader(header?: string) {
     if (!header) throw new BadRequestException('Provide authorization');
 

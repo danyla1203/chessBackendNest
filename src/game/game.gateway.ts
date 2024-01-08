@@ -23,9 +23,11 @@ import {
   TurnBody,
   ChatMessage,
 } from './dto';
-import { Client, PlayerSocket } from './entities';
+import { Client, ClientSocket } from './entities';
 import { IsPlayer } from './guards/isplayer.guard';
-import { Game, Lobby, room } from './EmitTypes';
+import { Game, Lobby, User, room } from './EmitTypes';
+import { Anonymous } from './entities/Anonymous';
+import { LoggerService } from '../tools/logger';
 
 @WebSocketGateway({ namespace: 'game', cors: true, transports: ['websocket'] })
 @UsePipes(new ValidationPipe())
@@ -35,6 +37,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly service: GameService,
     private readonly authService: AuthService,
     private readonly tokensService: TokenService,
+    private readonly loggingService: LoggerService,
   ) {}
 
   @WebSocketServer()
@@ -46,11 +49,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.emit(Lobby.update, lobby);
   }
 
-  async handleConnection(client) {
-    const authToken = client.handshake.query['Authorization'];
-    client.authorized = false;
+  public async connWithToken(payload, client: Client) {
     try {
-      const payload = await this.tokensService.parseToken(authToken);
       const { name, id } = await this.authService.validateCreds(
         payload.id,
         payload.deviceId,
@@ -59,31 +59,66 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.authorized = true;
       client.userId = id;
     } catch (e) {
-      client.name = 'Anonymous';
+      client.name = payload.name;
+      client.userId = payload.id;
+    }
+  }
+  public createAnonymousConn(client) {
+    const user: Anonymous = this.service.anonymousUser(
+      Math.floor(Math.random() * 100000),
+    );
+    client.userId = user.userId;
+    client.name = user.name;
+    client.token = user.tempToken;
+    client.emit(User.anonymousToken, client.token);
+    this.loggingService.log(
+      `Anonymous. userId = ${client.userId}`,
+      'Ws Connection',
+    );
+  }
+
+  async handleConnection(client) {
+    const authToken = client.handshake.query['Authorization'];
+    client.authorized = false;
+    try {
+      const payload = await this.tokensService.parseToken(authToken);
+      await this.connWithToken(payload, client);
+    } catch (e) {
+      this.createAnonymousConn(client);
     }
     client.emit(Lobby.update, this.service.getLobby());
   }
 
   @SubscribeMessage('create')
   async createGame(
-    @PlayerSocket() player: Client,
+    @ClientSocket() client: Client,
     @MessageBody() config: CreateGameDto,
   ) {
-    const { id } = this.service.createGame(player, config);
-    player.join(room(id));
-    player.emit(Game.created, { gameId: id });
+    const { id } = this.service.createGame(client, config);
+    client.join(room(id));
+    client.emit(Game.created, { gameId: id });
 
     const lobby = this.service.getLobby();
     this.server.emit(Lobby.update, lobby);
   }
 
-  @SubscribeMessage('join')
-  joinGame(
-    @PlayerSocket() player: Client,
+  @SubscribeMessage('rejoin')
+  rejoinGame(
+    @ClientSocket() client: Client,
     @MessageBody() { gameId }: ConnectToGameDto,
   ) {
-    const game = this.service.connectToGame(player, gameId);
-    player.join(room(game.id));
+    const game = this.service.findGameById(gameId);
+    client.join(room(game.id));
+    client.emit(Game.boardUpdate, this.service.pendingGameData(game));
+  }
+
+  @SubscribeMessage('join')
+  joinGame(
+    @ClientSocket() client: Client,
+    @MessageBody() { gameId }: ConnectToGameDto,
+  ) {
+    const game = this.service.connectToGame(client, gameId);
+    client.join(room(game.id));
 
     for (const player of game.players) {
       player.emit(Game.init, game.getInitedGameData(player.id));
@@ -97,12 +132,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('move')
   @UseGuards(IsPlayer)
   move(
-    @PlayerSocket() player: Client,
+    @ClientSocket() client: Client,
     @MessageBody() { gameId, figure, cell }: TurnBody,
   ) {
     const game = this.service.findGameById(gameId);
     const { shah, mate, strike }: CompletedMove = game.makeTurn(
-      player.id,
+      client.id,
       figure,
       cell,
     );
@@ -118,23 +153,23 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('chat-message')
   @UseGuards(IsPlayer)
   chatMessage(
-    @PlayerSocket() player: Client,
+    @ClientSocket() client: Client,
     @MessageBody() { gameId, text }: ChatMessage,
   ) {
     const game = this.service.findGameById(gameId);
-    const message = this.service.pushMessage(game, text, player);
+    const message = this.service.pushMessage(game, text, client);
     this.server.to(room(game.id)).emit(Game.message, message);
   }
 
   @SubscribeMessage('surrender')
   @UseGuards(IsPlayer)
   async surrender(
-    @PlayerSocket() player: Client,
+    @ClientSocket() client: Client,
     @MessageBody() { gameId }: { gameId: number },
   ) {
     const { game, winner, looser } = await this.service.surrender(
       gameId,
-      player,
+      client,
     );
     this.server.to(room(game.id)).emit(Game.surrender, { winner, looser });
   }
@@ -142,20 +177,20 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('draw_purpose')
   @UseGuards(IsPlayer)
   drawPurpose(
-    @PlayerSocket() player: Client,
+    @ClientSocket() client: Client,
     @MessageBody() { gameId }: { gameId: number },
   ) {
-    const purpose = this.service.purposeDraw(gameId, player);
-    player.toRoom(room(gameId), Game.drawPurpose, purpose);
+    const purpose = this.service.purposeDraw(gameId, client);
+    client.toRoom(room(gameId), Game.drawPurpose, purpose);
   }
 
   @SubscribeMessage('draw_accept')
   @UseGuards(IsPlayer)
   async acceptPurpose(
-    @PlayerSocket() player: Client,
+    @ClientSocket() client: Client,
     @MessageBody() { gameId }: { gameId: number },
   ) {
-    await this.service.acceptDraw(gameId, player);
+    await this.service.acceptDraw(gameId, client);
     this.server.to(room(gameId)).emit(Game.draw);
   }
 
@@ -169,10 +204,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('add_time')
   @UseGuards(IsPlayer)
   addTime(
-    @PlayerSocket() player: Client,
+    @ClientSocket() client: Client,
     @MessageBody() { gameId }: { gameId: number },
   ) {
-    const result = this.service.addTimeToAnotherPlayer(gameId, player);
+    const result = this.service.addTimeToAnotherPlayer(gameId, client);
     this.server.to(room(gameId)).emit(Game.addTime, result);
   }
 }

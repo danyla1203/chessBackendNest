@@ -1,6 +1,6 @@
 import { ExecutionContext, createParamDecorator } from '@nestjs/common';
 
-export const PlayerSocket = createParamDecorator(
+export const ClientSocket = createParamDecorator(
   (_: unknown, ctx: ExecutionContext) => {
     const socket = ctx.switchToHttp().getRequest();
     const player = {

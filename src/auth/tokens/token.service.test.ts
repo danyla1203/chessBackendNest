@@ -1,13 +1,14 @@
 import { Test } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TokenService } from './token.service';
 import { faker } from '@faker-js/faker';
 
 describe('TokenService', () => {
   let service: TokenService;
   let jwtService: JwtService;
+  let cnf: ConfigService;
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -20,9 +21,16 @@ describe('TokenService', () => {
       ],
       providers: [TokenService],
     }).compile();
-
+    cnf = moduleRef.get<ConfigService>(ConfigService);
     service = moduleRef.get<TokenService>(TokenService);
     jwtService = moduleRef.get<JwtService>(JwtService);
+  });
+  it('anonymousToken', () => {
+    jest.spyOn(jwtService, 'sign').mockImplementationOnce(() => 'string');
+    expect(service.anonymousToken(12345)).toEqual({
+      token: 'string',
+      exp: cnf.get('JWT_ACCESS_EXPIRES'),
+    });
   });
   describe('parseToken', () => {
     const payload = {

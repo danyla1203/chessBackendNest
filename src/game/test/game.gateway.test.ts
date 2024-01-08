@@ -4,7 +4,6 @@ import { GameService } from '../game.service';
 import { AuthService, TokenService } from '../../auth';
 import { Game, Lobby, room } from '../EmitTypes';
 import { faker } from '@faker-js/faker';
-import { UserFields } from 'src/user/entities';
 import { generateConfig } from './generators';
 
 jest.mock('../game.service');
@@ -54,14 +53,63 @@ describe('GameGateway (unit)', () => {
         emit: jest.fn(),
       };
     });
-    it('Anonymous connection', () => {
-      jest.spyOn(tokenService, 'parseToken').mockImplementationOnce(() => {
-        throw Error();
+    it('create anonymous connection', () => {
+      jest.spyOn(Math, 'random').mockImplementationOnce(() => 0.12345);
+      jest.spyOn(service, 'anonymousUser').mockImplementationOnce(() => {
+        return {
+          userId: 12345,
+          name: 'Anonymous',
+          tempToken: 'string',
+          exp: 'exp',
+        };
       });
+      gateway.createAnonymousConn(client);
+      expect(client.userId).toBe(12345);
+      expect(client.name).toBe('Anonymous');
+      expect(client.token).toBeDefined();
+      expect(client.emit).toBeCalled();
+    });
+    it('connection with token', async () => {
+      jest.spyOn(authService, 'validateCreds').mockImplementationOnce(() => {
+        throw new Error();
+      });
+      const payload = {
+        name: 'Anonymous',
+        id: 12345,
+      };
+      await gateway.connWithToken(payload, client);
+      expect(client.name).toBe('Anonymous');
+      expect(client.userId).toEqual(12345);
+    });
+    it('connection with auth and token', async () => {
+      const auth = {
+        name: faker.internet.userName(),
+        id: faker.number.int(5),
+        email: faker.internet.email(),
+      };
+      jest
+        .spyOn(authService, 'validateCreds')
+        .mockImplementationOnce(async () => {
+          return auth;
+        });
+      await gateway.connWithToken({ id: 12345, deviceId: 'dId' }, client);
+      expect(client.name).toEqual(auth.name);
+      expect(client.userId).toEqual(auth.id);
+      expect(client.authorized).toBeTruthy();
+    });
+    it('Anonymous connection (without token)', async () => {
+      jest
+        .spyOn(gateway, 'createAnonymousConn')
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        .mockImplementationOnce(() => {});
+      jest
+        .spyOn(tokenService, 'parseToken')
+        .mockImplementationOnce(async () => {
+          throw new Error();
+        });
       jest.spyOn(service, 'getLobby').mockImplementationOnce(() => []);
-      gateway.handleConnection(client);
-      expect(client.authorized).toBeFalsy();
-      expect(client.name).toEqual('Anonymous');
+      await gateway.handleConnection(client);
+      expect(gateway.createAnonymousConn).toBeCalledWith(client);
       expect(client.emit).toBeCalledWith(Lobby.update, []);
     });
     it('Authorized connection', async () => {
@@ -69,25 +117,15 @@ describe('GameGateway (unit)', () => {
         id: faker.string.nanoid(6),
         deviceId: faker.string.uuid(),
       };
-      const userFields: UserFields = {
-        id: faker.number.int(7),
-        email: faker.internet.email(),
-        name: faker.internet.userName(),
-      };
       jest.spyOn(tokenService, 'parseToken').mockImplementationOnce(() => {
         return stubedTokenData;
       });
       jest
-        .spyOn(authService, 'validateCreds')
-        .mockImplementationOnce(async () => {
-          return userFields;
-        });
-      jest.spyOn(service, 'getLobby').mockImplementationOnce(() => []);
+        .spyOn(gateway, 'connWithToken')
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        .mockImplementationOnce(async () => {});
       await gateway.handleConnection(client);
-      expect(client.name).toEqual(userFields.name);
-      expect(client.authorized).toBeTruthy();
-      expect(client.userId).toEqual(userFields.id);
-      expect(client.emit).toBeCalledWith(Lobby.update, []);
+      expect(gateway.connWithToken).toBeCalledWith(stubedTokenData, client);
     });
   });
   describe('message handlers', () => {

@@ -16,6 +16,11 @@ export enum Game {
   surrender = 'game:surrender',
   drawPurpose = 'game:draw_purpose',
 }
+
+export enum User {
+  anonymousToken = 'user:anon-token',
+}
+
 /**
  *
  * @param id

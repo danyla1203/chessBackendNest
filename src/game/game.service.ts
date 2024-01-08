@@ -19,12 +19,15 @@ import {
   GameResult,
 } from './entities/game';
 import { GameModel } from './model';
+import { Anonymous } from './entities/Anonymous';
+import { TokenService } from '../auth';
 
 @Injectable()
 export class GameService {
   constructor(
     private readonly list: GameList,
     private readonly model: GameModel,
+    private readonly tokenService: TokenService,
   ) {}
 
   private async injectableSaveGame(
@@ -78,6 +81,15 @@ export class GameService {
     const game = this.list.games.find((game) => game.id === id);
     if (!game) throw new NotFoundException('Game not found');
     return game;
+  }
+
+  public anonymousUser(id: number) {
+    const { token, exp } = this.tokenService.anonymousToken(id);
+    return new Anonymous(token, exp);
+  }
+
+  public pendingGameData(game) {
+    return this.getActualGameState(game);
   }
 
   public getActualGameState(game: Game): PlainBoardState {
