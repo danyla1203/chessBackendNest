@@ -5,6 +5,7 @@ import { AuthService, TokenService } from '../../auth';
 import { Game, Lobby, room } from '../EmitTypes';
 import { faker } from '@faker-js/faker';
 import { generateConfig } from './generators';
+import { LoggerService } from '../../tools/logger';
 
 jest.mock('../game.service');
 jest.mock('../../auth');
@@ -17,7 +18,13 @@ describe('GameGateway (unit)', () => {
   let authService: AuthService;
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      providers: [GameGateway, GameService, AuthService, TokenService],
+      providers: [
+        GameGateway,
+        GameService,
+        AuthService,
+        TokenService,
+        LoggerService,
+      ],
     }).compile();
     service = moduleRef.get(GameService);
     authService = moduleRef.get(AuthService);
