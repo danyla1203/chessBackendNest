@@ -10,10 +10,15 @@ import { AuthModel } from './model';
 import { TokenService } from './tokens/token.service';
 import { UserFields } from 'src/user/entities/user.entity';
 import { Tokens } from './tokens/token.entities';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
-  constructor(private tokenService: TokenService, private model: AuthModel) {}
+  constructor(
+    private tokenService: TokenService,
+    private model: AuthModel,
+    private config: ConfigService,
+  ) {}
 
   public async sendVerificationMail(
     email: string,
@@ -113,7 +118,7 @@ export class AuthService {
     if (!user) {
       const confirmation = await this.model.findConfirmation(email);
       if (!confirmation) await this.model.createConfirmation(-1, email, true);
-      return { message: 'ok', email };
+      return { message: 'ok', email, action: 'user:created' };
     } else {
       const tokens = await this.tokenService.getPair(
         user.id,
@@ -124,7 +129,27 @@ export class AuthService {
         tokens.refresh,
         'google-' + user.id,
       );
-      return tokens;
+      return { ...tokens, action: 'user:authorized' };
     }
+  }
+
+  public async getGoogleOauthLink() {
+    const rootUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+
+    const options = {
+      redirect_uri: this.config.get('GOOGLE_REDIRECT_URL') as string,
+      client_id: this.config.get('GOOGLE_CLIENT_ID') as string,
+      access_type: 'offline',
+      response_type: 'code',
+      prompt: 'consent',
+      scope: [
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+      ].join(' '),
+    };
+
+    const qs = new URLSearchParams(options);
+
+    return `${rootUrl}?${qs.toString()}`;
   }
 }
