@@ -102,10 +102,10 @@ export class GameService {
 
     const [white, black] = Object.values(boards);
     for (const [figure, cell] of white.entries()) {
-      plainObj.white[figure] = cell;
+      plainObj.white[cell] = figure;
     }
     for (const [figure, cell] of black.entries()) {
-      plainObj.black[figure] = cell;
+      plainObj.black[cell] = figure;
     }
 
     return plainObj;

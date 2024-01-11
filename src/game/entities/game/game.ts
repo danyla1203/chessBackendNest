@@ -3,8 +3,17 @@ import { CompletedMove, InitedGameData } from '../../dto';
 import { GameProcess } from './process/game.process';
 import { Client } from '../Client';
 import { Player } from '../Player';
-import { Cell, Config, Figure, GameData, GameResult, Move } from './game.types';
+import {
+  Cell,
+  Config,
+  Figure,
+  FiguresCellState,
+  GameData,
+  GameResult,
+  Move,
+} from './game.types';
 import { GameChat } from './game.chat';
+import { Game as GameEmits } from '../../EmitTypes';
 
 export class Game {
   id: number;
@@ -36,14 +45,23 @@ export class Game {
   }
 
   public getInitedGameData(userId: string): InitedGameData {
-    const { white, black } = this.process.state;
-    const boards = {
-      white: Object.fromEntries(white),
-      black: Object.fromEntries(black),
+    const boards: FiguresCellState = this.process.state;
+
+    const plainObj = {
+      white: {},
+      black: {},
     };
 
+    const [white, black] = Object.values(boards);
+    for (const [figure, cell] of white.entries()) {
+      plainObj.white[cell] = figure;
+    }
+    for (const [figure, cell] of black.entries()) {
+      plainObj.black[cell] = figure;
+    }
+
     const payload = {
-      board: boards,
+      board: plainObj,
       gameId: this.id,
       side: this.players.find((pl) => pl.id === userId).side,
       maxTime: this.config.time,
@@ -76,8 +94,8 @@ export class Game {
     this.winner = winner;
     this.looser = looser;
     //TODO: Is this method suposed to emit ws messages?
-    winner.emit('game:end', { winner: true });
-    looser.emit('game:end', { winner: false });
+    winner.emit(GameEmits.end, { winner: true });
+    looser.emit(GameEmits.end, { winner: false });
 
     const winnerData = {
       id: this.id,
@@ -120,8 +138,8 @@ export class Game {
     if (active.time <= 0) {
       await this.endGame(waiter, active);
     }
-    active.emit('game:time', { w: white.time, b: black.time });
-    waiter.emit('game:time', { w: white.time, b: black.time });
+    active.emit(GameEmits.timeTick, { w: white.time, b: black.time });
+    waiter.emit(GameEmits.timeTick, { w: white.time, b: black.time });
   }
   public changeTickingSide(next: Player, old: Player): void {
     clearInterval(old.intervalLabel);
@@ -147,7 +165,11 @@ export class Game {
     });
   }
 
-  public makeTurn(playerId: string, figure: Figure, cell: Cell): CompletedMove {
+  public makeTurn(
+    playerId: string,
+    figure: Figure,
+    cell: Cell,
+  ): { result: CompletedMove; prevCell: Cell, side: 'w' | 'b' } {
     if (!this.isActive) throw new ConflictException('Game is not active');
 
     const player = this.players.find(({ id }) => playerId === id);
@@ -156,14 +178,14 @@ export class Game {
     }
 
     const from: Cell = this.process.getBoard().board.get(figure);
-    const turnResult = this.process.makeTurn(figure, cell);
+    const result = this.process.makeTurn(figure, cell);
 
     const nextPlayer = this.players.find((player) => player.id !== playerId);
     this.changeTickingSide(nextPlayer, player);
 
-    this.saveMove(figure, cell, from, turnResult);
+    this.saveMove(figure, cell, from, result);
     this.process.store.setNextTurnSide();
-    return turnResult;
+    return { result, prevCell: from, side: player.side };
   }
 
   public start(): void {

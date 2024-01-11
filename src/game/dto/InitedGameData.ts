@@ -1,12 +1,7 @@
+import { PlainBoardState } from './PlainBoardState';
+
 export type InitedGameData = {
-  board: {
-    white: {
-      [k: string]: string;
-    };
-    black: {
-      [k: string]: string;
-    };
-  };
+  board: PlainBoardState;
   gameId: number;
   side: 'w' | 'b';
   maxTime: number;
