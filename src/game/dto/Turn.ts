@@ -5,7 +5,7 @@ export class TurnBody {
   gameId: number;
 
   @IsString()
-  @Length(2, 5)
+  @Length(1, 5)
   figure: string;
 
   @IsString()
