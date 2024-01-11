@@ -16,13 +16,7 @@ import {
 import { WsValidationFilter } from '../tools/WsValidationFilter';
 import { GameService } from './game.service';
 import { AuthService, TokenService } from '../auth';
-import {
-  CompletedMove,
-  ConnectToGameDto,
-  CreateGameDto,
-  TurnBody,
-  ChatMessage,
-} from './dto';
+import { ConnectToGameDto, CreateGameDto, TurnBody, ChatMessage } from './dto';
 import { Client, ClientSocket } from './entities';
 import { IsPlayer } from './guards/isplayer.guard';
 import { Game, Lobby, User, room } from './EmitTypes';
@@ -136,18 +130,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() { gameId, figure, cell }: TurnBody,
   ) {
     const game = this.service.findGameById(gameId);
-    const { shah, mate, strike }: CompletedMove = game.makeTurn(
-      client.id,
-      figure,
-      cell,
-    );
-
-    const actualState = this.service.getActualGameState(game);
-
+    const { result, prevCell, side } = game.makeTurn(client.id, figure, cell);
+    const { shah, mate, strike } = result;
     if (shah) this.server.to(room(game.id)).emit(Game.shah, shah);
     if (mate) this.server.to(room(game.id)).emit(Game.mate, mate);
     if (strike) this.server.to(room(game.id)).emit(Game.strike, strike);
-    this.server.to(room(game.id)).emit(Game.boardUpdate, actualState);
+    this.server
+      .to(room(game.id))
+      .emit(Game.boardUpdate, { figure, cell, prevCell, side });
   }
 
   @SubscribeMessage('chat-message')
