@@ -37,8 +37,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  handleDisconnect(client: any) {
+  handleDisconnect(client: Client) {
     this.service.removeGameInLobby(client);
+    const opponent = this.service.playerLeaveEvent(client);
+    if (opponent) {
+      opponent.emit(Game.playerLeave, {
+        opponent: { id: opponent.id, name: opponent.name, side: opponent.side },
+      });
+    }
     const lobby = this.service.getLobby();
     this.server.emit(Lobby.update, lobby);
   }
@@ -52,15 +58,21 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.name = name;
       client.authorized = true;
       client.userId = id;
+      this.loggingService.log(
+        `Authorized. userId = ${client.userId}, name=${name}`,
+        'Ws Connection',
+      );
     } catch (e) {
       client.name = payload.name;
       client.userId = payload.id;
+      this.loggingService.log(
+        `Anonymous. userId = ${client.userId}`,
+        'Ws Connection',
+      );
     }
   }
   public createAnonymousConn(client) {
-    const user: Anonymous = this.service.anonymousUser(
-      Math.floor(Math.random() * 100000),
-    );
+    const user: Anonymous = this.service.anonymousUser();
     client.userId = user.userId;
     client.name = user.name;
     client.token = user.tempToken;
@@ -80,6 +92,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } catch (e) {
       this.createAnonymousConn(client);
     }
+    const game = this.service.findPendingGame(client);
+    if (game) client.emit(Game.pendingGame, { gameId: game.id });
+
     client.emit(Lobby.update, this.service.getLobby());
   }
 
@@ -101,9 +116,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ClientSocket() client: Client,
     @MessageBody() { gameId }: ConnectToGameDto,
   ) {
-    const game = this.service.findGameById(gameId);
+    const game = this.service.findPendingUserGame(gameId, client.userId);
     client.join(room(game.id));
-    client.emit(Game.boardUpdate, this.service.pendingGameData(game));
+    const { side } = this.service.updateSocket(client, game);
+    client.emit(Game.init, game.getInitedGameData(client.userId));
+    this.server.to(room(game.id)).emit(Game.playerReconected, {
+      opponent: {
+        id: client.id,
+        name: client.name,
+        side,
+      },
+    });
   }
 
   @SubscribeMessage('join')
@@ -115,7 +138,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.join(room(game.id));
 
     for (const player of game.players) {
-      player.emit(Game.init, game.getInitedGameData(player.id));
+      player.emit(Game.init, game.getInitedGameData(player.userId));
     }
     this.server.to(room(game.id)).emit(Game.start);
     game.start();
@@ -130,7 +153,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() { gameId, figure, cell }: TurnBody,
   ) {
     const game = this.service.findGameById(gameId);
-    const { result, prevCell, side } = game.makeTurn(client.id, figure, cell);
+    const { result, prevCell, side } = game.makeTurn(
+      client.userId,
+      figure,
+      cell,
+    );
     const { shah, mate, strike } = result;
     if (shah) this.server.to(room(game.id)).emit(Game.shah, shah);
     if (mate) this.server.to(room(game.id)).emit(Game.mate, mate);

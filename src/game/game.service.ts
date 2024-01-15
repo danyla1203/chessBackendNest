@@ -73,6 +73,23 @@ export class GameService {
   public removeGameInLobby(player: Client): void {
     this.list.removeGameFromLobbyByPlayer(player);
   }
+  public playerLeaveEvent(player: Client): Player {
+    const game = this.list.findPendingClientGame(player);
+    if (!game) return;
+
+    return game.players.find((pl) => pl.userId !== player.userId);
+  }
+  public findPendingGame(client) {
+    return this.list.findPendingClientGame(client);
+  }
+  public findPendingUserGame(gameId: number, clientId: number) {
+    const game = this.list.findPendingGame(gameId, clientId);
+    if (!game) throw new NotFoundException('Game not found');
+    return game;
+  }
+  public updateSocket(socket: Client, game: Game): Player {
+    return game.resetPlayer(socket);
+  }
 
   public getLobby(): GameData[] {
     return this.list.lobby.map((game) => game.data);
@@ -83,9 +100,10 @@ export class GameService {
     return game;
   }
 
-  public anonymousUser(id: number) {
+  public anonymousUser() {
+    const id = Math.floor(Math.random() * 100000);
     const { token, exp } = this.tokenService.anonymousToken(id);
-    return new Anonymous(token, exp);
+    return new Anonymous(id, token, exp);
   }
 
   public pendingGameData(game) {
@@ -121,8 +139,8 @@ export class GameService {
   ): Promise<{ game: Game; winner: Player; looser: Player }> {
     const game = this.findGameById(gameId);
     const [pl1, pl2] = game.players;
-    const winner = pl1.id !== client.id ? pl1 : pl2;
-    const looser = pl1.id === client.id ? pl1 : pl2;
+    const winner = pl1.userId !== client.userId ? pl1 : pl2;
+    const looser = pl1.userId === client.userId ? pl1 : pl2;
 
     await game.endGame(winner, looser);
     return { game, winner, looser };
@@ -130,7 +148,7 @@ export class GameService {
 
   public purposeDraw(gameId: number, client: Client): DrawAgreement {
     const game = this.findGameById(gameId);
-    const player = game.players.find((pl) => pl.id === client.id);
+    const player = game.players.find((pl) => pl.userId === client.userId);
     if (game.draw[player.side])
       throw new ConflictException('Draw purpose already set');
     game.setDrawPurposeFrom(player);
@@ -146,7 +164,7 @@ export class GameService {
   ): Promise<DrawAgreement> {
     const game = this.findGameById(gameId);
     const draw = game.draw;
-    const player = game.players.find((pl) => pl.id === client.id);
+    const player = game.players.find((pl) => pl.userId === client.userId);
 
     if (!draw.w && !draw.b)
       throw new ConflictException('Draw purpose wasnt set');
@@ -171,7 +189,7 @@ export class GameService {
   public addTimeToAnotherPlayer(gameId: number, player: Client): TimeUpdate {
     const game = this.findGameById(gameId);
     const players = game.players;
-    const toPlayer = players.find((pl) => pl.id !== player.id);
+    const toPlayer = players.find((pl) => pl.userId !== player.userId);
     game.addTimeTo(toPlayer, game.config.timeIncrement);
 
     return {

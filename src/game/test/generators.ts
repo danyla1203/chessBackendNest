@@ -25,7 +25,7 @@ export const generatePlayer = (
 
 export const generateClient = (
   authorized = true,
-  userId = parseInt(faker.string.nanoid(8)),
+  userId = faker.number.int({ max: 99999, min: 1 }),
 ): Client => {
   return {
     id: faker.string.nanoid(8),

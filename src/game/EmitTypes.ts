@@ -2,6 +2,7 @@ export enum Lobby {
   update = 'lobby:update',
 }
 export enum Game {
+  pendingGame = 'game:pending-one',
   created = 'game:created',
   init = 'game:init-data',
   start = 'game:start',
@@ -17,6 +18,8 @@ export enum Game {
   message = 'game:chat-message',
   surrender = 'game:surrender',
   drawPurpose = 'game:draw_purpose',
+  playerLeave = 'game:opponent-leave',
+  playerReconected = 'game:player-reconnected',
 }
 
 export enum User {
