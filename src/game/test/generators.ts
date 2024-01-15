@@ -46,7 +46,7 @@ export const generateConfig = (side: 'w' | 'b' | 'rand' = 'w'): Config => {
 };
 
 export const getFigureCellState = () => {
-  const black = {
+  const b = {
     pawn1: 'a7',
     pawn2: 'b7',
     pawn3: 'c7',
@@ -64,7 +64,7 @@ export const getFigureCellState = () => {
     B2: 'f8',
     R2: 'h8',
   };
-  const white = {
+  const w = {
     pawn1: 'a2',
     pawn2: 'b2',
     pawn3: 'c2',
@@ -83,7 +83,7 @@ export const getFigureCellState = () => {
     R2: 'h1',
   };
   return {
-    white,
-    black,
+    w,
+    b,
   };
 };
