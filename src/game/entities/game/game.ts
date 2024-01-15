@@ -48,16 +48,16 @@ export class Game {
     const boards: FiguresCellState = this.process.state;
 
     const plainObj = {
-      white: {},
-      black: {},
+      w: {},
+      b: {},
     };
 
     const [white, black] = Object.values(boards);
     for (const [figure, cell] of white.entries()) {
-      plainObj.white[cell] = figure;
+      plainObj.w[cell] = figure;
     }
     for (const [figure, cell] of black.entries()) {
-      plainObj.black[cell] = figure;
+      plainObj.b[cell] = figure;
     }
 
     const payload = {
@@ -169,7 +169,7 @@ export class Game {
     playerId: string,
     figure: Figure,
     cell: Cell,
-  ): { result: CompletedMove; prevCell: Cell, side: 'w' | 'b' } {
+  ): { result: CompletedMove; prevCell: Cell; side: 'w' | 'b' } {
     if (!this.isActive) throw new ConflictException('Game is not active');
 
     const player = this.players.find(({ id }) => playerId === id);
