@@ -44,7 +44,7 @@ export class Game {
     };
   }
 
-  public getInitedGameData(userId: string): InitedGameData {
+  public getInitedGameData(userId: number): InitedGameData {
     const boards: FiguresCellState = this.process.state;
 
     const plainObj = {
@@ -63,7 +63,7 @@ export class Game {
     const payload = {
       board: plainObj,
       gameId: this.id,
-      side: this.players.find((pl) => pl.id === userId).side,
+      side: this.players.find((pl) => pl.userId === userId).side,
       maxTime: this.config.time,
       timeIncrement: this.config.timeIncrement,
     };
@@ -81,10 +81,12 @@ export class Game {
     this.config = config;
   }
 
-  public addPlayer(player: Client): void {
+  public addPlayer(client: Client): Player {
     const pickedSide = Object.values(this.players)[0].side;
     const side = pickedSide === 'w' ? 'b' : 'w';
-    this.players.push({ ...player, side, time: this.config.time });
+    const player: Player = { ...client, side, time: this.config.time };
+    this.players.push(player);
+    return player;
   }
 
   public async endGame(winner: Player, looser: Player): Promise<void> {
@@ -127,7 +129,7 @@ export class Game {
   }
 
   public addTimeTo(target: Player, inc): void {
-    const pl = this.players.find((player) => player.id === target.id);
+    const pl = this.players.find((player) => player.userId === target.userId);
     pl.time += inc;
   }
 
@@ -143,11 +145,35 @@ export class Game {
   }
   public changeTickingSide(next: Player, old: Player): void {
     clearInterval(old.intervalLabel);
+    old.turningPlayer = false;
     old.time += this.config.timeIncrement;
 
+    next.turningPlayer = true;
     next.intervalLabel = setInterval(() => {
       this.timerTick.call(this, next, old);
     }, 1000);
+  }
+  public resetTicking() {
+    const [pl1, pl2] = this.players;
+    const { active, waiter } = pl1.turningPlayer
+      ? { active: pl1, waiter: pl2 }
+      : { active: pl2, waiter: pl1 };
+    active.intervalLabel = setInterval(() => {
+      this.timerTick.call(this, active, waiter);
+    }, 1000);
+  }
+  public resetPlayer(newSocket: Client): Player {
+    const prev = this.players.find((pl) => newSocket.userId === pl.userId);
+    clearInterval(prev.intervalLabel);
+    this.players = this.players.filter((pl) => pl.userId !== newSocket.userId);
+    const newPlayer: Player = {
+      ...newSocket,
+      time: prev.time,
+      side: prev.side,
+    };
+    this.players.push(newPlayer);
+    this.resetTicking();
+    return newPlayer;
   }
 
   private saveMove(
@@ -166,13 +192,13 @@ export class Game {
   }
 
   public makeTurn(
-    playerId: string,
+    playerId: number,
     figure: Figure,
     cell: Cell,
   ): { result: CompletedMove; prevCell: Cell; side: 'w' | 'b' } {
     if (!this.isActive) throw new ConflictException('Game is not active');
 
-    const player = this.players.find(({ id }) => playerId === id);
+    const player = this.players.find(({ userId }) => playerId === userId);
     if (player.side !== this.process.turnSide) {
       throw new ConflictException('Not your turn');
     }
@@ -180,7 +206,9 @@ export class Game {
     const from: Cell = this.process.getBoard().board.get(figure);
     const result = this.process.makeTurn(figure, cell);
 
-    const nextPlayer = this.players.find((player) => player.id !== playerId);
+    const nextPlayer = this.players.find(
+      (player) => player.userId !== playerId,
+    );
     this.changeTickingSide(nextPlayer, player);
 
     this.saveMove(figure, cell, from, result);

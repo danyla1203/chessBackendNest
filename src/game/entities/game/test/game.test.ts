@@ -82,12 +82,12 @@ describe('Game entity (unit)', () => {
         maxTime: game.config.time,
         timeIncrement: game.config.timeIncrement,
       };
-
-      expect(game.getInitedGameData(game.players[0].id)).toStrictEqual(
+      console.log(game.players[0].side, game.players[1].side);
+      expect(game.getInitedGameData(game.players[0].userId)).toStrictEqual(
         expected,
       );
       expected.side = game.players[1].side;
-      expect(game.getInitedGameData(game.players[1].id)).toStrictEqual(
+      expect(game.getInitedGameData(game.players[1].userId)).toStrictEqual(
         expected,
       );
     });
@@ -232,7 +232,7 @@ describe('Game entity (unit)', () => {
   describe('makeTurn', () => {
     it('should throw Conflict err if game is not active', () => {
       game.isActive = false;
-      expect(() => game.makeTurn('', 'pawn4', 'd3')).toThrow(
+      expect(() => game.makeTurn(0, 'pawn4', 'd3')).toThrow(
         new ConflictException('Game is not active'),
       );
     });
@@ -243,8 +243,8 @@ describe('Game entity (unit)', () => {
       const side = pickedSide === 'w' ? 'b' : 'w';
       game.players.push({ ...player, side, time: game.config.time });
 
-      const { id } = side === 'w' ? game.players[0] : game.players[1];
-      expect(() => game.makeTurn(id, 'pawn4', 'd5')).toThrow(
+      const { userId } = side === 'w' ? game.players[0] : game.players[1];
+      expect(() => game.makeTurn(userId, 'pawn4', 'd5')).toThrow(
         new ConflictException('Not your turn'),
       );
     });

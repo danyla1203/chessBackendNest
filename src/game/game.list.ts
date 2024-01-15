@@ -31,9 +31,14 @@ export class GameList {
       return game.players.find((pl) => pl.id !== id);
     });
   }
-  public findPendingClientGame({ id }: Client): Game | null {
+  public findPendingClientGame({ userId }: Client): Game | null {
     return this.games.find((g) => {
-      return g.players.find((pl) => pl.id === id);
+      return g.players.find((pl) => pl.userId === userId);
+    });
+  }
+  public findPendingGame(id: number, clientId) {
+    return this.games.find((g) => {
+      return g.id === id && g.players.find((pl) => pl.userId === clientId);
     });
   }
 }
