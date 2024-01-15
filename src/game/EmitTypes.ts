@@ -14,7 +14,7 @@ export enum Game {
   timeTick = 'game:time',
   strike = 'game:strike',
   boardUpdate = 'game:board-update',
-  message = 'game:chate-message',
+  message = 'game:chat-message',
   surrender = 'game:surrender',
   drawPurpose = 'game:draw_purpose',
 }
