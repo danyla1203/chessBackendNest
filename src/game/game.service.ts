@@ -73,6 +73,12 @@ export class GameService {
   public removeGameInLobby(player: Client): void {
     this.list.removeGameFromLobbyByPlayer(player);
   }
+  public playerLeaveEvent(player: Client): Player {
+    const game = this.list.findPendingClientGame(player);
+    if (!game) return;
+
+    return game.players.find((pl) => pl.id !== player.id);
+  }
 
   public getLobby(): GameData[] {
     return this.list.lobby.map((game) => game.data);

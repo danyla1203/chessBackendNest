@@ -6,6 +6,7 @@ import { Game, Lobby, room } from '../EmitTypes';
 import { faker } from '@faker-js/faker';
 import { generateConfig } from './generators';
 import { LoggerService } from '../../tools/logger';
+import { Client } from '../entities';
 
 jest.mock('../game.service');
 jest.mock('../../auth');
@@ -46,7 +47,7 @@ describe('GameGateway (unit)', () => {
   it('handleDisconnect', () => {
     const stubClient = {};
     jest.spyOn(service, 'getLobby').mockImplementationOnce(() => []);
-    gateway.handleDisconnect(stubClient);
+    gateway.handleDisconnect(stubClient as Client);
     expect(service.removeGameInLobby).toBeCalledWith(stubClient);
     expect(gateway.server.emit).toBeCalledWith(Lobby.update, []);
   });

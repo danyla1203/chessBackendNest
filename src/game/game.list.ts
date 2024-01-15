@@ -31,4 +31,9 @@ export class GameList {
       return game.players.find((pl) => pl.id !== id);
     });
   }
+  public findPendingClientGame({ id }: Client): Game | null {
+    return this.games.find((g) => {
+      return g.players.find((pl) => pl.id === id);
+    });
+  }
 }

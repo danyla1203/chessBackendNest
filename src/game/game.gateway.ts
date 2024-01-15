@@ -37,8 +37,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  handleDisconnect(client: any) {
+  handleDisconnect(client: Client) {
     this.service.removeGameInLobby(client);
+    const opponent = this.service.playerLeaveEvent(client);
+    if (opponent) {
+      opponent.emit(Game.playerLeave, {
+        opponent: { id: opponent.id, name: opponent.name, side: opponent.side },
+      });
+    }
     const lobby = this.service.getLobby();
     this.server.emit(Lobby.update, lobby);
   }
