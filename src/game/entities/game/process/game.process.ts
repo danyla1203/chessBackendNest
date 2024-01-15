@@ -426,7 +426,7 @@ export class GameProcess {
     const { opponent } = this.getBoard();
     const opSide = this.getOpponentSide();
     for (const [figure, fCell] of opponent) {
-      if (fCell === cell) return { strikedSide: opSide, figure };
+      if (fCell === cell) return { strikedSide: opSide, cell, figure };
     }
     return null;
   }

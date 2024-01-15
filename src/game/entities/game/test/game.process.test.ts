@@ -140,10 +140,10 @@ describe('GameProcess (unit)', () => {
   });
   describe('isStrikeAfterMove', () => {
     const cases = [
-      ['w', 'c7', { strikedSide: 'b', figure: 'pawn3' }],
-      ['b', 'e2', { strikedSide: 'w', figure: 'pawn5' }],
-      ['w', 'h7', { strikedSide: 'b', figure: 'pawn8' }],
-      ['b', 'd2', { strikedSide: 'w', figure: 'pawn4' }],
+      ['w', 'c7', { strikedSide: 'b', figure: 'pawn3', cell: 'c7' }],
+      ['b', 'e2', { strikedSide: 'w', figure: 'pawn5', cell: 'e2' }],
+      ['w', 'h7', { strikedSide: 'b', figure: 'pawn8', cell: 'h7' }],
+      ['b', 'd2', { strikedSide: 'w', figure: 'pawn4', cell: 'd2' }],
     ];
     test.each(cases)(
       'for side - %p, target cell - %p, expected - %p',

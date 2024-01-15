@@ -1,6 +1,7 @@
 export type StrikedData = {
   strikedSide: 'w' | 'b';
   figure: string;
+  cell: string;
 };
 export type ShahData = {
   shachedSide: 'w' | 'b';

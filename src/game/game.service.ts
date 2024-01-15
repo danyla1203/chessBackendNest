@@ -96,16 +96,16 @@ export class GameService {
     const boards: FiguresCellState = game.process.state;
 
     const plainObj = {
-      white: {},
-      black: {},
+      w: {},
+      b: {},
     };
 
     const [white, black] = Object.values(boards);
     for (const [figure, cell] of white.entries()) {
-      plainObj.white[cell] = figure;
+      plainObj.w[cell] = figure;
     }
     for (const [figure, cell] of black.entries()) {
-      plainObj.black[cell] = figure;
+      plainObj.b[cell] = figure;
     }
 
     return plainObj;

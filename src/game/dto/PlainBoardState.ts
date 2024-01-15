@@ -1,4 +1,4 @@
 export type PlainBoardState = {
-  black: { [key: string]: string };
-  white: { [key: string]: string };
+  b: { [key: string]: string };
+  w: { [key: string]: string };
 };

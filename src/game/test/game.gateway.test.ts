@@ -156,9 +156,13 @@ describe('GameGateway (unit)', () => {
         getInitedGameData: jest.fn().mockReturnValue({}),
         makeTurn: jest.fn().mockImplementation(() => {
           return {
-            shah: {},
-            mate: {},
-            strike: {},
+            result: {
+              shah: {},
+              mate: {},
+              strike: {},
+            },
+            prevCell: '',
+            side: '',
           };
         }),
       };
@@ -196,14 +200,9 @@ describe('GameGateway (unit)', () => {
       jest.spyOn(service, 'findGameById').mockImplementationOnce((): any => {
         return game;
       });
-      jest
-        .spyOn(service, 'getActualGameState')
-        .mockImplementationOnce((): any => {
-          return {};
-        });
+
       gateway.move(player, { gameId: game.id, figure: 'B1', cell: 'a4' });
       expect(game.makeTurn).toBeCalledWith(player.id, 'B1', 'a4');
-      expect(service.getActualGameState).toBeCalledWith(game);
 
       expect(gateway.server.to).toBeCalledWith(room(game.id));
       expect(gateway.server.to(room(game.id)).emit).toHaveBeenNthCalledWith(
@@ -224,7 +223,7 @@ describe('GameGateway (unit)', () => {
       expect(gateway.server.to(room(game.id)).emit).toHaveBeenNthCalledWith(
         4,
         Game.boardUpdate,
-        {},
+        { figure: 'B1', cell: 'a4', prevCell: '', side: '' },
       );
     });
     it('send message in game chat', () => {
