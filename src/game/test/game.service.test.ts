@@ -67,8 +67,11 @@ describe('GameService (unit)', () => {
         exp: 'exp',
       };
     });
-    const expected = new Anonymous('string', 'exp');
-    expect(service.anonymousUser(12345)).toEqual(expected);
+    jest.spyOn(Math, 'random').mockImplementationOnce(() => {
+      return 0.12345;
+    });
+    const expected = new Anonymous(12345, 'string', 'exp');
+    expect(service.anonymousUser()).toEqual(expected);
   });
   it('removeGameInLobby - should call list.removeGameFromLobbyByPlayer', () => {
     const cl = generateClient();

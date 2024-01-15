@@ -52,15 +52,21 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.name = name;
       client.authorized = true;
       client.userId = id;
+      this.loggingService.log(
+        `Authorized. userId = ${client.userId}, name=${name}`,
+        'Ws Connection',
+      );
     } catch (e) {
       client.name = payload.name;
       client.userId = payload.id;
+      this.loggingService.log(
+        `Anonymous. userId = ${client.userId}`,
+        'Ws Connection',
+      );
     }
   }
   public createAnonymousConn(client) {
-    const user: Anonymous = this.service.anonymousUser(
-      Math.floor(Math.random() * 100000),
-    );
+    const user: Anonymous = this.service.anonymousUser();
     client.userId = user.userId;
     client.name = user.name;
     client.token = user.tempToken;

@@ -83,9 +83,10 @@ export class GameService {
     return game;
   }
 
-  public anonymousUser(id: number) {
+  public anonymousUser() {
+    const id = Math.floor(Math.random() * 100000);
     const { token, exp } = this.tokenService.anonymousToken(id);
-    return new Anonymous(token, exp);
+    return new Anonymous(id, token, exp);
   }
 
   public pendingGameData(game) {
