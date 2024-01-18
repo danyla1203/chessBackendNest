@@ -87,8 +87,21 @@ export class GameService {
     if (!game) throw new NotFoundException('Game not found');
     return game;
   }
-  public updateSocket(socket: Client, game: Game): Player {
-    return game.resetPlayer(socket);
+  public updateSocket(socket, game: Game): Player {
+    const adaptedSocket = {
+      id: socket.id,
+      authorized: socket.authorized,
+      name: socket.name,
+      userId: socket.userId,
+      join: socket.join.bind(socket),
+      emit: socket.emit.bind(socket),
+      toRoom: (room: string, event: string, data: any) => {
+        socket.to(room).emit(event, data);
+      },
+    };
+    const newPlayer = game.resetPlayer(adaptedSocket);
+    game.resetTicking();
+    return newPlayer;
   }
 
   public getLobby(): GameData[] {
