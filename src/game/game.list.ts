@@ -32,9 +32,10 @@ export class GameList {
     });
   }
   public findPendingClientGame({ userId }: Client): Game | null {
-    return this.games.find((g) => {
+    const game = this.games.find((g) => {
       return g.players.find((pl) => pl.userId === userId);
     });
+    return game?.isActive ? game : null;
   }
   public findPendingGame(id: number, clientId) {
     return this.games.find((g) => {
