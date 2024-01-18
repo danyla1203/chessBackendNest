@@ -93,7 +93,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.createAnonymousConn(client);
     }
     const game = this.service.findPendingGame(client);
-    if (game) client.emit(Game.pendingGame, { gameId: game.id });
+    if (game) {
+      client.emit(Game.pendingGame, { gameId: game.id });
+      this.service.updateSocket(client, game);
+    }
 
     client.emit(Lobby.update, this.service.getLobby());
   }
@@ -118,13 +121,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const game = this.service.findPendingUserGame(gameId, client.userId);
     client.join(room(game.id));
-    const { side } = this.service.updateSocket(client, game);
     client.emit(Game.init, game.getInitedGameData(client.userId));
     this.server.to(room(game.id)).emit(Game.playerReconected, {
       opponent: {
         id: client.id,
         name: client.name,
-        side,
       },
     });
   }

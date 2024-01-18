@@ -13,7 +13,6 @@ export const ClientSocket = createParamDecorator(
       toRoom: (room: string, event: string, data: any) =>
         socket.to(room).emit(event, data),
     };
-    if (socket.userId) player.userId = socket.userId;
     return player;
   },
 );

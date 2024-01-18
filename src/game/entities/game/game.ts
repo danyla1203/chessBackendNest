@@ -172,7 +172,6 @@ export class Game {
       side: prev.side,
     };
     this.players.push(newPlayer);
-    this.resetTicking();
     return newPlayer;
   }
 
