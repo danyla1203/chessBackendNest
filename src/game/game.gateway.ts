@@ -158,13 +158,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       figure,
       cell,
     );
-    const { shah, mate, strike } = result;
-    if (shah) this.server.to(room(game.id)).emit(Game.shah, shah);
-    if (mate) this.server.to(room(game.id)).emit(Game.mate, mate);
-    if (strike) this.server.to(room(game.id)).emit(Game.strike, strike);
-    this.server
-      .to(room(game.id))
-      .emit(Game.boardUpdate, { figure, cell, prevCell, side });
+    this.server.to(room(game.id)).emit(Game.boardUpdate, {
+      effect: result,
+      update: { figure, cell, prevCell, side },
+    });
   }
 
   @SubscribeMessage('chat-message')
