@@ -15,13 +15,11 @@ import {
 } from '@nestjs/common';
 import { WsValidationFilter } from '../tools/WsValidationFilter';
 import { GameService } from './game.service';
-import { AuthService, TokenService } from '../auth';
 import { ConnectToGameDto, CreateGameDto, TurnBody, ChatMessage } from './dto';
 import { Client, ClientSocket } from './entities';
 import { IsPlayer } from './guards/isplayer.guard';
-import { Game, Lobby, User, room } from './EmitTypes';
-import { Anonymous } from './entities/Anonymous';
-import { LoggerService } from '../tools/logger';
+import { Game, Lobby, room } from './EmitTypes';
+import { ConnectionProvider } from './connection.provider';
 
 @WebSocketGateway({ namespace: 'game', cors: true, transports: ['websocket'] })
 @UsePipes(new ValidationPipe())
@@ -29,9 +27,7 @@ import { LoggerService } from '../tools/logger';
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly service: GameService,
-    private readonly authService: AuthService,
-    private readonly tokensService: TokenService,
-    private readonly loggingService: LoggerService,
+    private readonly connService: ConnectionProvider,
   ) {}
 
   @WebSocketServer()
@@ -49,49 +45,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.emit(Lobby.update, lobby);
   }
 
-  public async connWithToken(payload, client: Client) {
-    try {
-      const { name, id } = await this.authService.validateCreds(
-        payload.id,
-        payload.deviceId,
-      );
-      client.name = name;
-      client.authorized = true;
-      client.userId = id;
-      this.loggingService.log(
-        `Authorized. userId = ${client.userId}, name=${name}`,
-        'Ws Connection',
-      );
-    } catch (e) {
-      client.name = payload.name;
-      client.userId = payload.id;
-      this.loggingService.log(
-        `Anonymous. userId = ${client.userId}`,
-        'Ws Connection',
-      );
-    }
-  }
-  public createAnonymousConn(client) {
-    const user: Anonymous = this.service.anonymousUser();
-    client.userId = user.userId;
-    client.name = user.name;
-    client.token = user.tempToken;
-    client.emit(User.anonymousToken, client.token);
-    this.loggingService.log(
-      `Anonymous. userId = ${client.userId}`,
-      'Ws Connection',
-    );
-  }
-
   async handleConnection(client) {
-    const authToken = client.handshake.query['Authorization'];
-    client.authorized = false;
-    try {
-      const payload = await this.tokensService.parseToken(authToken);
-      await this.connWithToken(payload, client);
-    } catch (e) {
-      this.createAnonymousConn(client);
-    }
+    await this.connService.processClient(client);
     const game = this.service.findPendingGame(client);
     if (game) {
       client.emit(Game.pendingGame, { gameId: game.id });

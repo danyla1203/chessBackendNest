@@ -121,7 +121,7 @@ export class Game {
 
     await this.saveGame(pl1, pl2, drawData);
   }
-  public setDrawPurposeFrom({ side }: Player): void {
+  public setDrawPurposeFrom(side: 'w' | 'b'): void {
     this.draw[side] = true;
   }
   public rejectDraw(): void {
@@ -155,6 +155,8 @@ export class Game {
   }
   public resetTicking() {
     const [pl1, pl2] = this.players;
+    clearInterval(pl1.intervalLabel);
+    clearInterval(pl2.intervalLabel);
     const { active, waiter } = pl1.turningPlayer
       ? { active: pl1, waiter: pl2 }
       : { active: pl2, waiter: pl1 };

@@ -15,9 +15,10 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { faker } from '@faker-js/faker';
 import { Client, Player } from '../entities';
 import { TokenService } from '../../auth';
-import { Anonymous } from '../entities/Anonymous';
+import { ConnectionProvider } from '../connection.provider';
 
 jest.mock('../../auth');
+jest.mock('../connection.provider');
 
 describe('GameService (unit)', () => {
   let service: GameService;
@@ -29,7 +30,6 @@ describe('GameService (unit)', () => {
   let pl2: Player;
   let cnf: Config;
   let gm: Game;
-  let tokenService: TokenService;
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -38,10 +38,10 @@ describe('GameService (unit)', () => {
         GameModel,
         PrismaService,
         TokenService,
+        ConnectionProvider,
       ],
     }).compile();
     service = moduleRef.get(GameService);
-    tokenService = moduleRef.get(TokenService);
     model = moduleRef.get(GameModel);
     list = moduleRef.get(GameList);
 
@@ -59,19 +59,6 @@ describe('GameService (unit)', () => {
   });
   it('should be defined', () => {
     expect(service).toBeDefined();
-  });
-  it('anonymousUser', () => {
-    jest.spyOn(tokenService, 'anonymousToken').mockImplementationOnce(() => {
-      return {
-        token: 'string',
-        exp: 'exp',
-      };
-    });
-    jest.spyOn(Math, 'random').mockImplementationOnce(() => {
-      return 0.12345;
-    });
-    const expected = new Anonymous(12345, 'string', 'exp');
-    expect(service.anonymousUser()).toEqual(expected);
   });
   it('removeGameInLobby - should call list.removeGameFromLobbyByPlayer', () => {
     const cl = generateClient();

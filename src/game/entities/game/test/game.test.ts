@@ -46,9 +46,9 @@ describe('Game entity (unit)', () => {
     });
   });
   it('setDrawPurposeFrom', () => {
-    const pl = game.players[0];
-    game.setDrawPurposeFrom(pl);
-    expect(game.draw[pl.side]).toBeTruthy();
+    const { side } = game.players[0];
+    game.setDrawPurposeFrom(side);
+    expect(game.draw[side]).toBeTruthy();
   });
   it('rejectDraw', () => {
     game.rejectDraw();

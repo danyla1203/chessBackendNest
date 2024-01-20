@@ -7,6 +7,7 @@ import { faker } from '@faker-js/faker';
 import { generateConfig } from './generators';
 import { LoggerService } from '../../tools/logger';
 import { Client } from '../entities';
+import { ConnectionProvider } from '../connection.provider';
 
 jest.mock('../game.service');
 jest.mock('../../auth');
@@ -15,8 +16,6 @@ jest.mock('../game.service');
 describe('GameGateway (unit)', () => {
   let gateway: GameGateway;
   let service: GameService;
-  let tokenService: TokenService;
-  let authService: AuthService;
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -25,11 +24,10 @@ describe('GameGateway (unit)', () => {
         AuthService,
         TokenService,
         LoggerService,
+        ConnectionProvider,
       ],
     }).compile();
     service = moduleRef.get(GameService);
-    authService = moduleRef.get(AuthService);
-    tokenService = moduleRef.get(TokenService);
     gateway = moduleRef.get(GameGateway);
     const emit = jest.fn();
     gateway.server = {
@@ -50,91 +48,6 @@ describe('GameGateway (unit)', () => {
     gateway.handleDisconnect(stubClient as Client);
     expect(service.removeGameInLobby).toBeCalledWith(stubClient);
     expect(gateway.server.emit).toBeCalledWith(Lobby.update, []);
-  });
-  describe('handleConnection', () => {
-    let client: any;
-    beforeEach(() => {
-      client = {
-        handshake: {
-          query: {},
-        },
-        emit: jest.fn(),
-      };
-    });
-    it('create anonymous connection', () => {
-      jest.spyOn(Math, 'random').mockImplementationOnce(() => 0.12345);
-      jest.spyOn(service, 'anonymousUser').mockImplementationOnce(() => {
-        return {
-          userId: 12345,
-          name: 'Anonymous',
-          tempToken: 'string',
-          exp: 'exp',
-        };
-      });
-      gateway.createAnonymousConn(client);
-      expect(client.userId).toBe(12345);
-      expect(client.name).toBe('Anonymous');
-      expect(client.token).toBeDefined();
-      expect(client.emit).toBeCalled();
-    });
-    it('connection with token', async () => {
-      jest.spyOn(authService, 'validateCreds').mockImplementationOnce(() => {
-        throw new Error();
-      });
-      const payload = {
-        name: 'Anonymous',
-        id: 12345,
-      };
-      await gateway.connWithToken(payload, client);
-      expect(client.name).toBe('Anonymous');
-      expect(client.userId).toEqual(12345);
-    });
-    it('connection with auth and token', async () => {
-      const auth = {
-        name: faker.internet.userName(),
-        id: faker.number.int(5),
-        email: faker.internet.email(),
-      };
-      jest
-        .spyOn(authService, 'validateCreds')
-        .mockImplementationOnce(async () => {
-          return auth;
-        });
-      await gateway.connWithToken({ id: 12345, deviceId: 'dId' }, client);
-      expect(client.name).toEqual(auth.name);
-      expect(client.userId).toEqual(auth.id);
-      expect(client.authorized).toBeTruthy();
-    });
-    it('Anonymous connection (without token)', async () => {
-      jest
-        .spyOn(gateway, 'createAnonymousConn')
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        .mockImplementationOnce(() => {});
-      jest
-        .spyOn(tokenService, 'parseToken')
-        .mockImplementationOnce(async () => {
-          throw new Error();
-        });
-      jest.spyOn(service, 'getLobby').mockImplementationOnce(() => []);
-      await gateway.handleConnection(client);
-      expect(gateway.createAnonymousConn).toBeCalledWith(client);
-      expect(client.emit).toBeCalledWith(Lobby.update, []);
-    });
-    it('Authorized connection', async () => {
-      const stubedTokenData = {
-        id: faker.string.nanoid(6),
-        deviceId: faker.string.uuid(),
-      };
-      jest.spyOn(tokenService, 'parseToken').mockImplementationOnce(() => {
-        return stubedTokenData;
-      });
-      jest
-        .spyOn(gateway, 'connWithToken')
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        .mockImplementationOnce(async () => {});
-      await gateway.handleConnection(client);
-      expect(gateway.connWithToken).toBeCalledWith(stubedTokenData, client);
-    });
   });
   describe('message handlers', () => {
     let player: any;

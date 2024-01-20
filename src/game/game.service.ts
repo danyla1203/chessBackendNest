@@ -19,7 +19,6 @@ import {
   GameResult,
 } from './entities/game';
 import { GameModel } from './model';
-import { Anonymous } from './entities/Anonymous';
 import { TokenService } from '../auth';
 
 @Injectable()
@@ -113,12 +112,6 @@ export class GameService {
     return game;
   }
 
-  public anonymousUser() {
-    const id = Math.floor(Math.random() * 100000);
-    const { token, exp } = this.tokenService.anonymousToken(id);
-    return new Anonymous(id, token, exp);
-  }
-
   public pendingGameData(game) {
     return this.getActualGameState(game);
   }
@@ -161,14 +154,10 @@ export class GameService {
 
   public purposeDraw(gameId: number, client: Client): DrawAgreement {
     const game = this.findGameById(gameId);
-    const player = game.players.find((pl) => pl.userId === client.userId);
-    if (game.draw[player.side])
-      throw new ConflictException('Draw purpose already set');
-    game.setDrawPurposeFrom(player);
-    const purpose =
-      player.side === 'w' ? { w: true, b: false } : { w: false, b: true };
-
-    return purpose;
+    const { side } = game.players.find((pl) => pl.userId === client.userId);
+    if (game.draw[side]) throw new ConflictException('Purpose already set');
+    game.setDrawPurposeFrom(side);
+    return side === 'w' ? { w: true, b: false } : { w: false, b: true };
   }
 
   public async acceptDraw(
@@ -176,13 +165,12 @@ export class GameService {
     client: Client,
   ): Promise<DrawAgreement> {
     const game = this.findGameById(gameId);
-    const draw = game.draw;
-    const player = game.players.find((pl) => pl.userId === client.userId);
+    const { w, b } = game.draw;
+    const { side } = game.players.find((pl) => pl.userId === client.userId);
 
-    if (!draw.w && !draw.b)
-      throw new ConflictException('Draw purpose wasnt set');
+    if (!w && !b) throw new ConflictException('Draw purpose wasnt set');
 
-    game.setDrawPurposeFrom(player);
+    game.setDrawPurposeFrom(side);
     await game.endGameByDraw();
 
     return { w: true, b: true };
@@ -190,10 +178,9 @@ export class GameService {
 
   public rejectDraw(gameId: number): DrawAgreement {
     const game = this.findGameById(gameId);
-    const draw = game.draw;
+    const { w, b } = game.draw;
 
-    if (!draw.w && !draw.b)
-      throw new ConflictException('Draw purpose wasnt set');
+    if (!w && !b) throw new ConflictException('Draw purpose wasnt set');
 
     game.rejectDraw();
     return { w: false, b: false };
