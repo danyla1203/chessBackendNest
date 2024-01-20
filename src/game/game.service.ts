@@ -86,6 +86,17 @@ export class GameService {
     if (!game) throw new NotFoundException('Game not found');
     return game;
   }
+  public leaveGame(gameId: number, clientId: number) {
+    const game = this.list.findPendingGame(gameId, clientId);
+    if (!game) throw new NotFoundException('Game not found');
+
+    const [pl1, pl2] = game.players;
+    const winner = pl1.userId !== clientId ? pl1 : pl2;
+    const looser = pl1.userId === clientId ? pl1 : pl2;
+    game.endGame(winner, looser);
+
+    return game;
+  }
   public updateSocket(socket, game: Game): Player {
     const adaptedSocket = {
       id: socket.id,

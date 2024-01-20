@@ -37,7 +37,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.service.removeGameInLobby(client);
     const opponent = this.service.playerLeaveEvent(client);
     if (opponent) {
-      opponent.emit(Game.playerLeave, {
+      opponent.emit(Game.playerDiconnected, {
         opponent: { id: opponent.id, name: opponent.name, side: opponent.side },
       });
     }
@@ -83,6 +83,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         name: client.name,
       },
     });
+  }
+  @SubscribeMessage('leave')
+  leaveGame(
+    @ClientSocket() client: Client,
+    @MessageBody() { gameId }: ConnectToGameDto,
+  ) {
+    const game = this.service.leaveGame(gameId, client.userId);
+    this.server.to(room(game.id)).emit(Game.end);
   }
 
   @SubscribeMessage('join')
