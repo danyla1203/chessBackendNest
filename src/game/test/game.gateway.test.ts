@@ -158,9 +158,9 @@ describe('GameGateway (unit)', () => {
         makeTurn: jest.fn().mockImplementation(() => {
           return {
             result: {
-              shah: {},
-              mate: {},
-              strike: {},
+              shah: null,
+              mate: null,
+              strike: null,
             },
             prevCell: '',
             side: '',
@@ -206,25 +206,12 @@ describe('GameGateway (unit)', () => {
       expect(game.makeTurn).toBeCalledWith(player.id, 'B1', 'a4');
 
       expect(gateway.server.to).toBeCalledWith(room(game.id));
-      expect(gateway.server.to(room(game.id)).emit).toHaveBeenNthCalledWith(
-        1,
-        Game.shah,
-        {},
-      );
-      expect(gateway.server.to(room(game.id)).emit).toHaveBeenNthCalledWith(
-        2,
-        Game.mate,
-        {},
-      );
-      expect(gateway.server.to(room(game.id)).emit).toHaveBeenNthCalledWith(
-        3,
-        Game.strike,
-        {},
-      );
-      expect(gateway.server.to(room(game.id)).emit).toHaveBeenNthCalledWith(
-        4,
+      expect(gateway.server.to(room(game.id)).emit).toHaveBeenCalledWith(
         Game.boardUpdate,
-        { figure: 'B1', cell: 'a4', prevCell: '', side: '' },
+        {
+          effect: { shah: null, mate: null, strike: null },
+          update: { figure: 'B1', cell: 'a4', prevCell: '', side: '' },
+        },
       );
     });
     it('send message in game chat', () => {
