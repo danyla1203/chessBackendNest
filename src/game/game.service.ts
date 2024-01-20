@@ -19,7 +19,6 @@ import {
   GameResult,
 } from './entities/game';
 import { GameModel } from './model';
-import { Anonymous } from './entities/Anonymous';
 import { TokenService } from '../auth';
 
 @Injectable()
@@ -111,12 +110,6 @@ export class GameService {
     const game = this.list.games.find((game) => game.id === id);
     if (!game) throw new NotFoundException('Game not found');
     return game;
-  }
-
-  public anonymousUser() {
-    const id = Math.floor(Math.random() * 100000);
-    const { token, exp } = this.tokenService.anonymousToken(id);
-    return new Anonymous(id, token, exp);
   }
 
   public pendingGameData(game) {
