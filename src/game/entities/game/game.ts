@@ -155,6 +155,8 @@ export class Game {
   }
   public resetTicking() {
     const [pl1, pl2] = this.players;
+    clearInterval(pl1.intervalLabel);
+    clearInterval(pl2.intervalLabel);
     const { active, waiter } = pl1.turningPlayer
       ? { active: pl1, waiter: pl2 }
       : { active: pl2, waiter: pl1 };
