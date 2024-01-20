@@ -121,7 +121,7 @@ export class Game {
 
     await this.saveGame(pl1, pl2, drawData);
   }
-  public setDrawPurposeFrom({ side }: Player): void {
+  public setDrawPurposeFrom(side: 'w' | 'b'): void {
     this.draw[side] = true;
   }
   public rejectDraw(): void {
