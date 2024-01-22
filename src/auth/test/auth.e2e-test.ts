@@ -5,8 +5,6 @@ import {
 } from '@nestjs/common';
 import * as req from 'supertest';
 import * as bcrypt from 'bcrypt';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../../app.module';
 import { PrismaService } from '../../prisma.service';
