@@ -82,7 +82,6 @@ describe('Game entity (unit)', () => {
         maxTime: game.config.time,
         timeIncrement: game.config.timeIncrement,
       };
-      console.log(game.players[0].side, game.players[1].side);
       expect(game.getInitedGameData(game.players[0].userId)).toStrictEqual(
         expected,
       );

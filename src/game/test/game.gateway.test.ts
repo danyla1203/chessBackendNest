@@ -26,7 +26,10 @@ describe('GameGateway (unit)', () => {
         LoggerService,
         ConnectionProvider,
       ],
-    }).compile();
+    })
+      .overrideProvider(LoggerService)
+      .useValue({ log: jest.fn() })
+      .compile();
     service = moduleRef.get(GameService);
     gateway = moduleRef.get(GameGateway);
     const emit = jest.fn();
@@ -93,6 +96,22 @@ describe('GameGateway (unit)', () => {
       expect(player.join).toBeCalledWith(room(gameId));
       expect(player.emit).toBeCalledWith(Game.created, { gameId });
       expect(gateway.server.emit).toBeCalledWith(Lobby.update, []);
+    });
+    it('rejoin', () => {
+      jest.spyOn(service, 'findPendingUserGame').mockImplementationOnce(() => {
+        return {
+          id: 12345,
+          getInitedGameData: jest.fn(() => {
+            return {
+              id: 12345,
+            };
+          }),
+        } as any;
+      });
+      gateway.rejoinGame(player, { gameId: 12345 });
+      expect(player.join).toBeCalledWith(room(12345));
+      expect(player.emit).toBeCalledWith(Game.init, { id: 12345 });
+      expect(gateway.server.to).toBeCalledWith(room(12345));
     });
     it('join', () => {
       jest.spyOn(service, 'connectToGame').mockImplementationOnce((): any => {

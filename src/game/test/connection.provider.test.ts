@@ -60,9 +60,16 @@ describe('Connection provider (unit)', () => {
             email: 'email@gmail.com',
           };
         });
+      const tokenPayload = {
+        id: 5,
+        deviceId: 'string',
+      };
+      jest.spyOn(tokenService, 'parseToken').mockImplementationOnce(() => {
+        return tokenPayload;
+      });
       jest.spyOn(provider as any, 'withToken').mockImplementation();
       await provider.processClient(client);
-      expect(provider['withToken']).toBeCalledWith(client);
+      expect(provider['withToken']).toBeCalledWith(tokenPayload, client);
     });
     it('anonymous method', () => {
       jest

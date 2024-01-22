@@ -16,7 +16,10 @@ describe('AuthService (unit)', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [ConfigModule, TestTokenModule],
       providers: [AuthService, PrismaService, AuthModel],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue({})
+      .compile();
 
     service = moduleRef.get<AuthService>(AuthService);
     model = moduleRef.get<AuthModel>(AuthModel);

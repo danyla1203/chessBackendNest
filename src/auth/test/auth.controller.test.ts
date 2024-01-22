@@ -5,6 +5,7 @@ import * as req from 'supertest';
 import { AuthService } from '../auth.service';
 import { faker } from '@faker-js/faker';
 import { PrismaService } from '../../prisma.service';
+import { LoggerService } from '../../tools/logger';
 
 jest.mock('axios', () => null);
 
@@ -25,6 +26,10 @@ describe('AuthController unit', () => {
       })
       .overrideProvider(PrismaService)
       .useValue({})
+      .overrideProvider(LoggerService)
+      .useValue({
+        log: jest.fn(),
+      })
       .compile();
 
     app = module.createNestApplication();

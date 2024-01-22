@@ -40,7 +40,10 @@ describe('GameService (unit)', () => {
         TokenService,
         ConnectionProvider,
       ],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue({})
+      .compile();
     service = moduleRef.get(GameService);
     model = moduleRef.get(GameModel);
     list = moduleRef.get(GameList);
@@ -214,7 +217,7 @@ describe('GameService (unit)', () => {
         b: false,
       };
       expect(() => service.purposeDraw(gm.id, cl1)).toThrow(
-        new ConflictException('Draw purpose already set'),
+        new ConflictException('Purpose already set'),
       );
     });
     it('purpose draw from client (white side)', () => {
