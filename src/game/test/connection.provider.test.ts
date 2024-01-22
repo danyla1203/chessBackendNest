@@ -3,7 +3,7 @@ import { AuthService, TokenService } from '../../auth';
 import { LoggerService } from '../../tools/logger';
 import { Anonymous } from '../entities/Anonymous';
 import { ConnectionProvider } from '../connection.provider';
-import { faker } from '@faker-js/faker';
+import { User } from '../EmitTypes';
 
 jest.mock('../../auth');
 
@@ -42,61 +42,72 @@ describe('Connection provider (unit)', () => {
         emit: jest.fn(),
       };
     });
-    it('connection with invalid token', async () => {
+    it('conn without token', async () => {
       jest.spyOn(authService, 'validateCreds').mockImplementationOnce(() => {
         throw new Error();
       });
+      jest.spyOn(provider as any, 'anonymous').mockImplementation();
+      await provider.processClient(client);
+      expect(provider['anonymous']).toBeCalledWith(client);
+    });
+    it('connection with correct token', async () => {
+      jest
+        .spyOn(authService, 'validateCreds')
+        .mockImplementationOnce(async () => {
+          return {
+            name: 'Name',
+            id: 5,
+            email: 'email@gmail.com',
+          };
+        });
+      jest.spyOn(provider as any, 'withToken').mockImplementation();
+      await provider.processClient(client);
+      expect(provider['withToken']).toBeCalledWith(client);
+    });
+    it('anonymous method', () => {
+      jest
+        .spyOn(provider as any, 'anonymousUser')
+        .mockImplementationOnce(() => {
+          return {
+            userId: 1,
+            name: 'Anonymous',
+            tempToken: 'string',
+            exp: 'exp',
+          };
+        });
+      provider['anonymous'](client);
+      expect(client.userId).toEqual(1);
+      expect(client.name).toEqual('Anonymous');
+      expect(client.token).toEqual('string');
+      expect(client.emit).toBeCalledWith(User.anonymousToken, 'string');
+    });
+    it('anonymousSession', () => {
       const payload = {
         name: 'Anonymous',
-        id: 12345,
+        id: -1,
       };
-      await provider['withToken'](payload, client);
-      expect(client.name).toBe('Anonymous');
-      expect(client.userId).toEqual(12345);
+      provider['anonymousSession'](payload, client);
+      expect(client.name).toEqual(payload.name);
+      expect(client.userId).toEqual(payload.id);
     });
-    it('connection with auth and correct token', async () => {
-      const auth = {
-        name: faker.internet.userName(),
-        id: faker.number.int(5),
-        email: faker.internet.email(),
+    it('authorized', async () => {
+      const payload = {
+        id: -1,
+        deviceId: 'string',
       };
       jest
         .spyOn(authService, 'validateCreds')
         .mockImplementationOnce(async () => {
-          return auth;
+          return {
+            name: 'Danek',
+            id: -1,
+            email: 'email@gmail.com',
+          };
         });
-      await provider['withToken']({ id: 12345, deviceId: 'dId' }, client);
-      expect(client.name).toEqual(auth.name);
-      expect(client.userId).toEqual(auth.id);
+      await provider['authorized'](payload, client);
+      expect(client.name).toEqual('Danek');
       expect(client.authorized).toBeTruthy();
-    });
-    it('Anonymous connection (without token)', async () => {
-      jest
-        .spyOn(provider as any, 'anonymous')
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        .mockImplementationOnce(() => {});
-      jest
-        .spyOn(tokenService, 'parseToken')
-        .mockImplementationOnce(async () => {
-          throw new Error();
-        });
-      await provider.processClient(client);
-      expect(provider['anonymous']).toBeCalledWith(client);
-    });
-    it('Authorized connection', async () => {
-      const stubedTokenData = {
-        id: faker.string.nanoid(6),
-        deviceId: faker.string.uuid(),
-      };
-      jest.spyOn(tokenService, 'parseToken').mockImplementationOnce(() => {
-        return stubedTokenData;
-      });
-      jest
-        .spyOn(provider as any, 'withToken')
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        .mockImplementationOnce(async () => {});
-      await provider.processClient(client);
-      expect(provider['withToken']).toBeCalledWith(stubedTokenData, client);
+      expect(client.userId).toEqual(-1);
     });
   });
 });

@@ -51,6 +51,7 @@ export class ConnectionProvider {
     client.userId = user.userId;
     client.name = user.name;
     client.token = user.tempToken;
+    //TODO: Should patching logic emit a message?
     client.emit(User.anonymousToken, client.token);
     this.loggingService.log(
       `Anonymous. userId = ${client.userId}`,
