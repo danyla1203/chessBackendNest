@@ -28,6 +28,11 @@ export class ConnectionProvider {
   private anonymousSession(payload, client) {
     client.name = payload.name;
     client.userId = payload.id;
+    //TODO: Should patching logic emit a message?
+    client.emit(User.anonymousToken, {
+      tempToken: client.token,
+      id: payload.id,
+    });
     this.loggingService.log(
       `Anonymous. userId = ${client.userId}`,
       'Ws Connection',
@@ -52,7 +57,10 @@ export class ConnectionProvider {
     client.name = user.name;
     client.token = user.tempToken;
     //TODO: Should patching logic emit a message?
-    client.emit(User.anonymousToken, client.token);
+    client.emit(User.anonymousToken, {
+      tempToken: client.token,
+      id: user.userId,
+    });
     this.loggingService.log(
       `Anonymous. userId = ${client.userId}`,
       'Ws Connection',
