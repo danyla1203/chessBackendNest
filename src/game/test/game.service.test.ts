@@ -63,10 +63,10 @@ describe('GameService (unit)', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
-  it('removeGameInLobby - should call list.removeGameFromLobbyByPlayer', () => {
+  it('removeInitedGamesBy - should call list.removeInitedGames', () => {
     const cl = generateClient();
-    const mock = jest.spyOn(list, 'removeGameFromLobbyByPlayer');
-    service.removeGameInLobby(cl);
+    const mock = jest.spyOn(list, 'removeInitedGames');
+    service.removeInitedGamesBy(cl);
     expect(mock).toBeCalledWith(cl);
   });
   describe('injecableSaveGame', () => {
@@ -160,7 +160,7 @@ describe('GameService (unit)', () => {
       gm.addPlayer = jest.fn();
       jest.spyOn(list, 'findInLobby').mockImplementation(() => gm);
       const remove = jest
-        .spyOn(list, 'removeGameFromLobby')
+        .spyOn(list, 'pushToStartedGames')
         .mockImplementation();
 
       expect(service.connectToGame(cl2, gm.id)).toStrictEqual(gm);

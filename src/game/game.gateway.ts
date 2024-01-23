@@ -34,8 +34,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   handleDisconnect(client: Client) {
-    this.service.removeGameInLobby(client);
-    const opponent = this.service.playerLeaveEvent(client);
+    this.service.removeInitedGamesBy(client);
+    const opponent = this.service.findCurrentOpponent(client);
     if (opponent) {
       opponent.emit(Game.playerDiconnected, {
         opponent: { id: opponent.id, name: opponent.name, side: opponent.side },
@@ -70,11 +70,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('rejoin')
-  rejoinGame(
-    @ClientSocket() client: Client,
-    @MessageBody() { gameId }: ConnectToGameDto,
-  ) {
-    const game = this.service.findPendingUserGame(gameId, client.userId);
+  rejoinGame(@ClientSocket() client: Client) {
+    const game = this.service.findPendingGameThrowable(client);
     client.join(room(game.id));
     client.emit(Game.init, game.getInitedGameData(client.userId));
     this.server.to(room(game.id)).emit(Game.playerReconected, {
@@ -85,11 +82,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
   @SubscribeMessage('leave')
-  leaveGame(
-    @ClientSocket() client: Client,
-    @MessageBody() { gameId }: ConnectToGameDto,
-  ) {
-    const game = this.service.leaveGame(gameId, client.userId);
+  leaveGame(@ClientSocket() client: Client) {
+    const game = this.service.leaveGame(client);
     this.server.to(room(game.id)).emit(Game.end);
   }
 

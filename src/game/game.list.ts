@@ -15,18 +15,18 @@ export class GameList {
   public addGameToLobby(game: Game): void {
     this.lobby.push(game);
   }
-  public findInLobby(id: number): Game {
-    return this.lobby.find((game) => game.id === id);
+  public findInLobby(id: number): Game | null {
+    return this.lobby.find((game) => game.id === id) || null;
   }
 
-  public removeGameFromLobby(gameId: number): void {
+  public pushToStartedGames(gameId: number): void {
     const index: number = this.lobby.findIndex(
       (game: Game) => game.id === gameId,
     );
     this.games.push(this.lobby[index]);
     this.lobby.splice(index, 1);
   }
-  public removeGameFromLobbyByPlayer({ id }: Client): void {
+  public removeInitedGames({ id }: Client): void {
     this.lobby = this.lobby.filter((game) => {
       return game.players.find((pl) => pl.id !== id);
     });
@@ -36,10 +36,5 @@ export class GameList {
       return g.players.find((pl) => pl.userId === userId);
     });
     return game?.isActive ? game : null;
-  }
-  public findPendingGame(id: number, clientId) {
-    return this.games.find((g) => {
-      return g.id === id && g.players.find((pl) => pl.userId === clientId);
-    });
   }
 }
