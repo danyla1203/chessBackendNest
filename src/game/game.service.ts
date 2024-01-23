@@ -64,35 +64,37 @@ export class GameService {
     }
 
     game.addPlayer(player);
-    this.list.removeGameFromLobby(gameId);
+    this.list.pushToStartedGames(gameId);
 
     return game;
   }
 
-  public removeGameInLobby(player: Client): void {
-    this.list.removeGameFromLobbyByPlayer(player);
+  public removeInitedGamesBy(player: Client): void {
+    this.list.removeInitedGames(player);
   }
-  public playerLeaveEvent(player: Client): Player {
+  public findCurrentOpponent(player: Client): Player {
     const game = this.list.findPendingClientGame(player);
     if (!game) return;
 
     return game.players.find((pl) => pl.userId !== player.userId);
   }
-  public findPendingGame(client) {
+
+  //TODO: How can i combine two similar methods below
+  public findPendingGame(client): Game | null {
     return this.list.findPendingClientGame(client);
   }
-  public findPendingUserGame(gameId: number, clientId: number) {
-    const game = this.list.findPendingGame(gameId, clientId);
+  public findPendingGameThrowable(client: Client): never | Game {
+    const game = this.list.findPendingClientGame(client);
     if (!game) throw new NotFoundException('Game not found');
     return game;
   }
-  public leaveGame(gameId: number, clientId: number) {
-    const game = this.list.findPendingGame(gameId, clientId);
+  public leaveGame(client: Client) {
+    const game = this.list.findPendingClientGame(client);
     if (!game) throw new NotFoundException('Game not found');
 
     const [pl1, pl2] = game.players;
-    const winner = pl1.userId !== clientId ? pl1 : pl2;
-    const looser = pl1.userId === clientId ? pl1 : pl2;
+    const winner = pl1.userId !== client.userId ? pl1 : pl2;
+    const looser = pl1.userId === client.userId ? pl1 : pl2;
     game.endGame(winner, looser);
 
     return game;
@@ -168,7 +170,7 @@ export class GameService {
     const { side } = game.players.find((pl) => pl.userId === client.userId);
     if (game.draw[side]) throw new ConflictException('Purpose already set');
     game.setDrawPurposeFrom(side);
-    return side === 'w' ? { w: true, b: false } : { w: false, b: true };
+    return game.draw;
   }
 
   public async acceptDraw(

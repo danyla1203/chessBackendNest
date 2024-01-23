@@ -49,7 +49,7 @@ describe('GameGateway (unit)', () => {
     const stubClient = {};
     jest.spyOn(service, 'getLobby').mockImplementationOnce(() => []);
     gateway.handleDisconnect(stubClient as Client);
-    expect(service.removeGameInLobby).toBeCalledWith(stubClient);
+    expect(service.removeInitedGamesBy).toBeCalledWith(stubClient);
     expect(gateway.server.emit).toBeCalledWith(Lobby.update, []);
   });
   describe('message handlers', () => {
@@ -98,17 +98,19 @@ describe('GameGateway (unit)', () => {
       expect(gateway.server.emit).toBeCalledWith(Lobby.update, []);
     });
     it('rejoin', () => {
-      jest.spyOn(service, 'findPendingUserGame').mockImplementationOnce(() => {
-        return {
-          id: 12345,
-          getInitedGameData: jest.fn(() => {
-            return {
-              id: 12345,
-            };
-          }),
-        } as any;
-      });
-      gateway.rejoinGame(player, { gameId: 12345 });
+      jest
+        .spyOn(service, 'findPendingGameThrowable')
+        .mockImplementationOnce(() => {
+          return {
+            id: 12345,
+            getInitedGameData: jest.fn(() => {
+              return {
+                id: 12345,
+              };
+            }),
+          } as any;
+        });
+      gateway.rejoinGame(player);
       expect(player.join).toBeCalledWith(room(12345));
       expect(player.emit).toBeCalledWith(Game.init, { id: 12345 });
       expect(gateway.server.to).toBeCalledWith(room(12345));
