@@ -66,11 +66,10 @@ describe('Socket connection (integration)', () => {
       expect(client).toHaveProperty('token');
       expect(client).toHaveProperty('userId');
       expect(client.authorized).toBeFalsy();
-      expect(client.emit).toHaveBeenNthCalledWith(
-        1,
-        User.anonymousToken,
-        client.token,
-      );
+      expect(client.emit).toHaveBeenNthCalledWith(1, User.anonymousToken, {
+        tempToken: client.token,
+        id: client.userId,
+      });
       expect(client.emit).toHaveBeenNthCalledWith(2, Game.pendingGame, {
         gameId: 12345,
       });
