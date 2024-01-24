@@ -28,10 +28,11 @@ export class ConnectionProvider {
   private anonymousSession(payload, client) {
     client.name = payload.name;
     client.userId = payload.id;
+    client.token = client.handshake.query['Authorization'];
     //TODO: Should patching logic emit a message?
     client.emit(User.anonymousToken, {
       tempToken: client.token,
-      id: payload.id,
+      userId: payload.id,
     });
     this.loggingService.log(
       `Anonymous. userId = ${client.userId}`,
