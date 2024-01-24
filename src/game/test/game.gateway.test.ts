@@ -171,7 +171,7 @@ describe('GameGateway (unit)', () => {
         looser: player2,
       };
       jest.spyOn(service, 'surrender').mockImplementationOnce(async () => {
-        return surrenderData;
+        return game;
       });
       await gateway.surrender(player2, { gameId: game.id });
       expect(gateway.server.to(room(game.id)).emit).toBeCalledWith(

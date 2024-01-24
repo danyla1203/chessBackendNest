@@ -20,6 +20,7 @@ import {
 } from './entities/game';
 import { GameModel } from './model';
 import { TokenService } from '../auth';
+import { GameWithWinner, DrawGame } from './entities/game/game.types';
 
 @Injectable()
 export class GameService {
@@ -95,9 +96,7 @@ export class GameService {
     const [pl1, pl2] = game.players;
     const winner = pl1.userId !== client.userId ? pl1 : pl2;
     const looser = pl1.userId === client.userId ? pl1 : pl2;
-    game.endGame(winner, looser);
-
-    return game;
+    return game.endGame(winner, looser);
   }
   public updateSocket(socket, game: Game): Player {
     const adaptedSocket = {
@@ -155,14 +154,13 @@ export class GameService {
   public async surrender(
     gameId: number,
     client: Client,
-  ): Promise<{ game: Game; winner: Player; looser: Player }> {
+  ): Promise<GameWithWinner> {
     const game = this.findGameById(gameId);
     const [pl1, pl2] = game.players;
     const winner = pl1.userId !== client.userId ? pl1 : pl2;
     const looser = pl1.userId === client.userId ? pl1 : pl2;
 
-    await game.endGame(winner, looser);
-    return { game, winner, looser };
+    return game.endGame(winner, looser);
   }
 
   public purposeDraw(gameId: number, client: Client): DrawAgreement {
@@ -173,10 +171,7 @@ export class GameService {
     return game.draw;
   }
 
-  public async acceptDraw(
-    gameId: number,
-    client: Client,
-  ): Promise<DrawAgreement> {
+  public async acceptDraw(gameId: number, client: Client): Promise<DrawGame> {
     const game = this.findGameById(gameId);
     const { w, b } = game.draw;
     const { side } = game.players.find((pl) => pl.userId === client.userId);
@@ -184,9 +179,7 @@ export class GameService {
     if (!w && !b) throw new ConflictException('Draw purpose wasnt set');
 
     game.setDrawPurposeFrom(side);
-    await game.endGameByDraw();
-
-    return { w: true, b: true };
+    return game.endGameByDraw();
   }
 
   public rejectDraw(gameId: number): DrawAgreement {
