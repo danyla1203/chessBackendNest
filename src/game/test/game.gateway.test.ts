@@ -165,22 +165,22 @@ describe('GameGateway (unit)', () => {
       );
     });
     it('surrender', async () => {
-      const surrenderData = {
-        game,
-        winner: player,
-        looser: player2,
-      };
+      game.winner = player;
+      game.looser = player2;
       jest.spyOn(service, 'surrender').mockImplementationOnce(async () => {
-        return surrenderData;
+        return game;
       });
       await gateway.surrender(player2, { gameId: game.id });
-      expect(gateway.server.to(room(game.id)).emit).toBeCalledWith(
-        Game.surrender,
-        {
-          winner: surrenderData.winner,
-          looser: surrenderData.looser,
-        },
-      );
+      expect(game.winner.emit).toBeCalledWith(Game.end, {
+        reason: 'surrender',
+        winner: true,
+        game,
+      });
+      expect(game.looser.emit).toBeCalledWith(Game.end, {
+        reason: 'surrender',
+        winner: false,
+        game,
+      });
     });
     it('set draw purpose', () => {
       const stubDraw: any = {};
@@ -200,7 +200,28 @@ describe('GameGateway (unit)', () => {
         return stubDraw;
       });
       await gateway.acceptPurpose(player, { gameId: game.id });
-      expect(gateway.server.to(room(game.id)).emit).toBeCalledWith(Game.draw);
+      expect(gateway.server.to(room(game.id)).emit).toBeCalledWith(Game.end, {
+        reason: 'draw',
+        game: {},
+      });
+    });
+    it('player leave', async () => {
+      game.winner = player;
+      game.looser = player2;
+      jest.spyOn(service, 'leaveGame').mockImplementationOnce(async () => {
+        return game;
+      });
+      await gateway.leaveGame(player2);
+      expect(game.winner.emit).toBeCalledWith(Game.end, {
+        reason: 'playerLeave',
+        winner: true,
+        game,
+      });
+      expect(game.looser.emit).toBeCalledWith(Game.end, {
+        reason: 'playerLeave',
+        winner: false,
+        game,
+      });
     });
     it('reject draw', () => {
       const stubDraw: any = {};

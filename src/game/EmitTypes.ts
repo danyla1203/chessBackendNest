@@ -1,6 +1,15 @@
 export enum Lobby {
   update = 'lobby:update',
 }
+
+export enum GameEnd {
+  surrender = 'surrender',
+  timeout = 'timeout',
+  draw = 'draw',
+  mate = 'mate',
+  playerLeave = 'playerLeave',
+}
+
 export enum Game {
   pendingGame = 'game:pending-one',
   created = 'game:created',

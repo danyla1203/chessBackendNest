@@ -191,13 +191,11 @@ describe('GameService (unit)', () => {
   });
   describe('surrender', () => {
     it('should call game.end with winner and return result', async () => {
-      jest.spyOn(gm, 'endGame').mockImplementation();
+      gm.winner = pl2;
+      gm.looser = pl1;
+      jest.spyOn(gm, 'endGame').mockImplementationOnce(async () => gm);
       jest.spyOn(service, 'findGameById').mockImplementationOnce(() => gm);
-      expect(service.surrender(gm.id, cl1)).resolves.toStrictEqual({
-        winner: pl2,
-        looser: pl1,
-        game: gm,
-      });
+      expect(service.surrender(gm.id, cl1)).resolves.toStrictEqual(gm);
       expect(gm.endGame).toBeCalledWith(pl2, pl1);
     });
   });
@@ -234,7 +232,7 @@ describe('GameService (unit)', () => {
     });
   });
   describe('acceptDraw', () => {
-    it('should throw Conflic err if draw purpose wasnt send', async () => {
+    it('should throw Conflict err if draw purpose wasnt send', async () => {
       gm.draw = { w: false, b: false };
       jest.spyOn(service, 'findGameById').mockImplementationOnce(() => gm);
       expect(service.acceptDraw(gm.id, cl2)).rejects.toThrow(
@@ -245,12 +243,17 @@ describe('GameService (unit)', () => {
       gm.draw = { w: true, b: false };
       jest.spyOn(service, 'findGameById').mockImplementationOnce(() => gm);
       jest.spyOn(gm, 'setDrawPurposeFrom').mockImplementation();
-      jest.spyOn(gm, 'endGameByDraw').mockImplementation();
-      expect(service.acceptDraw(gm.id, cl1)).resolves.toStrictEqual({
-        w: true,
-        b: true,
+      const stub = {
+        id: gm.id,
+        moves: gm.moves,
+        config: gm.config,
+        pl1,
+        pl2,
+      };
+      jest.spyOn(gm, 'endGameByDraw').mockImplementationOnce(async () => {
+        return stub;
       });
-      expect(gm.endGameByDraw).toBeCalled();
+      expect(service.acceptDraw(gm.id, cl1)).resolves.toStrictEqual(stub);
     });
   });
   describe('reject draw', () => {

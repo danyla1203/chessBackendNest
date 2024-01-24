@@ -18,7 +18,7 @@ import { GameService } from './game.service';
 import { ConnectToGameDto, CreateGameDto, TurnBody, ChatMessage } from './dto';
 import { Client, ClientSocket } from './entities';
 import { IsPlayer } from './guards/isplayer.guard';
-import { Game, Lobby, room } from './EmitTypes';
+import { Game, GameEnd, Lobby, room } from './EmitTypes';
 import { ConnectionProvider } from './connection.provider';
 
 @WebSocketGateway({ namespace: 'game', cors: true, transports: ['websocket'] })
@@ -82,9 +82,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
   @SubscribeMessage('leave')
-  leaveGame(@ClientSocket() client: Client) {
-    const game = this.service.leaveGame(client);
-    this.server.to(room(game.id)).emit(Game.end);
+  async leaveGame(@ClientSocket() client: Client) {
+    const game = await this.service.leaveGame(client);
+    game.winner.emit(Game.end, {
+      reason: GameEnd.playerLeave,
+      winner: true,
+      game,
+    });
+    game.looser.emit(Game.end, {
+      reason: GameEnd.playerLeave,
+      winner: false,
+      game,
+    });
   }
 
   @SubscribeMessage('join')
@@ -139,11 +148,17 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ClientSocket() client: Client,
     @MessageBody() { gameId }: { gameId: number },
   ) {
-    const { game, winner, looser } = await this.service.surrender(
-      gameId,
-      client,
-    );
-    this.server.to(room(game.id)).emit(Game.surrender, { winner, looser });
+    const game = await this.service.surrender(gameId, client);
+    game.winner.emit(Game.end, {
+      reason: GameEnd.surrender,
+      winner: true,
+      game,
+    });
+    game.looser.emit(Game.end, {
+      reason: GameEnd.surrender,
+      winner: false,
+      game,
+    });
   }
 
   @SubscribeMessage('draw_purpose')
@@ -162,8 +177,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ClientSocket() client: Client,
     @MessageBody() { gameId }: { gameId: number },
   ) {
-    await this.service.acceptDraw(gameId, client);
-    this.server.to(room(gameId)).emit(Game.draw);
+    const game = await this.service.acceptDraw(gameId, client);
+    this.server.to(room(gameId)).emit(Game.end, { reason: GameEnd.draw, game });
   }
 
   @SubscribeMessage('draw_reject')

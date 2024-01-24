@@ -166,8 +166,6 @@ describe('Game entity (unit)', () => {
       game.timerTick(pl1, pl2);
       expect(pl1.time).toEqual(0);
       expect(endGameMock).toBeCalledWith(pl2, pl1);
-      expect(pl1.emit).toBeCalled();
-      expect(pl2.emit).toBeCalled();
     });
   });
   describe('endGameByDraw', () => {

@@ -10,10 +10,12 @@ import {
   FiguresCellState,
   GameData,
   GameResult,
+  GameWithWinner,
   Move,
+  DrawGame,
 } from './game.types';
 import { GameChat } from './game.chat';
-import { Game as GameEmits } from '../../EmitTypes';
+import { Game as GameEmits, GameEnd } from '../../EmitTypes';
 
 export class Game {
   id: number;
@@ -43,7 +45,22 @@ export class Game {
       config: this.config,
     };
   }
-
+  private gameResultDto(
+    winner: Player,
+    looser: Player,
+    draw = false,
+  ): GameWithWinner | DrawGame {
+    delete winner.intervalLabel;
+    delete looser.intervalLabel;
+    const base = {
+      id: this.id,
+      moves: this.moves,
+      config: this.config,
+    };
+    return draw
+      ? { ...base, pl1: winner, pl2: looser }
+      : { ...base, winner, looser };
+  }
   public getInitedGameData(userId: number): InitedGameData {
     const boards: FiguresCellState = this.process.state;
 
@@ -89,15 +106,15 @@ export class Game {
     return player;
   }
 
-  public async endGame(winner: Player, looser: Player): Promise<void> {
+  public async endGame(
+    winner: Player,
+    looser: Player,
+  ): Promise<GameWithWinner> {
     clearInterval(winner.intervalLabel);
     clearInterval(looser.intervalLabel);
     this.isActive = false;
     this.winner = winner;
     this.looser = looser;
-    //TODO: Is this method suposed to emit ws messages?
-    winner.emit(GameEmits.end, { winner: true });
-    looser.emit(GameEmits.end, { winner: false });
 
     const winnerData = {
       id: this.id,
@@ -106,8 +123,9 @@ export class Game {
     };
 
     await this.saveGame(winner, looser, winnerData, true);
+    return this.gameResultDto(winner, looser) as GameWithWinner;
   }
-  public async endGameByDraw(): Promise<void> {
+  public async endGameByDraw(): Promise<DrawGame> {
     const [pl1, pl2] = Object.values(this.players);
     clearInterval(pl1.intervalLabel);
     clearInterval(pl2.intervalLabel);
@@ -120,6 +138,7 @@ export class Game {
     };
 
     await this.saveGame(pl1, pl2, drawData);
+    return this.gameResultDto(pl1, pl2, true) as DrawGame;
   }
   public setDrawPurposeFrom(side: 'w' | 'b'): void {
     this.draw[side] = true;
@@ -139,6 +158,18 @@ export class Game {
     active.time -= 1000;
     if (active.time <= 0) {
       await this.endGame(waiter, active);
+      //TODO: Is this method suposed to emit ws messages?
+      const game = this.gameResultDto(waiter, active);
+      active.emit(GameEmits.end, {
+        reason: GameEnd.timeout,
+        winner: true,
+        game,
+      });
+      waiter.emit(GameEmits.end, {
+        reason: GameEnd.timeout,
+        winner: false,
+        game,
+      });
     }
     active.emit(GameEmits.timeTick, { w: white.time, b: black.time });
     waiter.emit(GameEmits.timeTick, { w: white.time, b: black.time });
