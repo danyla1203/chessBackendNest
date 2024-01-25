@@ -33,9 +33,9 @@ export class TokenService {
     }
   }
 
-  public anonymousToken(id: number) {
+  public anonymousToken(userId: number) {
     const token = this.jwt.sign(
-      { id, name: 'Anonymous' },
+      { userId, name: 'Anonymous' },
       {
         secret: this.jwtSecret,
         expiresIn: this.accessExp,
