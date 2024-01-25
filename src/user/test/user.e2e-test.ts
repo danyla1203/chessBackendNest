@@ -169,10 +169,37 @@ describe('User e2e', () => {
       );
     });
     it('should return user games', async () => {
+      const parsed = games.map((g) => {
+        const time = Math.floor(g.maxTime / (1000 * 60));
+        const inc = Math.floor(g.timeIncrement / 1000);
+        const [pl1, pl2] = g.players.map((pl) => {
+          return {
+            userId: pl.userId,
+            side: pl.side,
+            winner: pl.isWinner,
+            name: pl.user.name,
+          };
+        });
+        const result = g.isDraw
+          ? { pl1, pl2 }
+          : pl1.winner
+          ? { winner: pl1, looser: pl2 }
+          : { winner: pl2, looser: pl1 };
+        return {
+          id: g.id,
+          key: g.id,
+          cnf: {
+            inc,
+            time,
+          },
+          result,
+          sidepick: g.sideSelecting,
+        };
+      });
       await req(server)
         .get('/user/games')
         .set('Authorization', `Bearer ${access}`)
-        .expect(200, { games });
+        .expect(200, { games: parsed, wins: 0, looses: 1, draws: 0 });
     });
   });
   describe('update', () => {
