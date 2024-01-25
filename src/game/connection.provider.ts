@@ -14,7 +14,7 @@ export class ConnectionProvider {
 
   private async authorized(payload, client) {
     const { name, id } = await this.authService.validateCreds(
-      payload.id,
+      payload.userId,
       payload.deviceId,
     );
     client.name = name;
@@ -27,11 +27,12 @@ export class ConnectionProvider {
   }
   private anonymousSession(payload, client) {
     client.name = payload.name;
-    client.userId = payload.id;
+    client.userId = payload.userId;
+    client.token = client.handshake.query['Authorization'];
     //TODO: Should patching logic emit a message?
     client.emit(User.anonymousToken, {
       tempToken: client.token,
-      id: payload.id,
+      userId: client.userId,
     });
     this.loggingService.log(
       `Anonymous. userId = ${client.userId}`,
@@ -47,9 +48,9 @@ export class ConnectionProvider {
   }
 
   private anonymousUser() {
-    const id = Math.floor(Math.random() * 100000);
-    const { token, exp } = this.tokensService.anonymousToken(id);
-    return new Anonymous(id, token, exp);
+    const userId = Math.floor(Math.random() * 100000);
+    const { token, exp } = this.tokensService.anonymousToken(userId);
+    return new Anonymous(userId, token, exp);
   }
   private anonymous(client) {
     const user: Anonymous = this.anonymousUser();
@@ -59,7 +60,7 @@ export class ConnectionProvider {
     //TODO: Should patching logic emit a message?
     client.emit(User.anonymousToken, {
       tempToken: client.token,
-      id: user.userId,
+      userId: client.userId,
     });
     this.loggingService.log(
       `Anonymous. userId = ${client.userId}`,

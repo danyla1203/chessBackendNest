@@ -87,18 +87,18 @@ describe('Connection provider (unit)', () => {
       expect(client.name).toEqual('Anonymous');
       expect(client.token).toEqual('string');
       expect(client.emit).toBeCalledWith(User.anonymousToken, {
-        id: 1,
+        userId: 1,
         tempToken: 'string',
       });
     });
     it('anonymousSession', () => {
       const payload = {
         name: 'Anonymous',
-        id: -1,
+        userId: -1,
       };
       provider['anonymousSession'](payload, client);
       expect(client.name).toEqual(payload.name);
-      expect(client.userId).toEqual(payload.id);
+      expect(client.userId).toEqual(payload.userId);
     });
     it('authorized', async () => {
       const payload = {
