@@ -36,6 +36,7 @@ export class GameService {
     result: GameResult,
     winner = false,
   ) {
+    this.list.gameEnd(result.id);
     if (!pl1.authorized || !pl2.authorized) return null;
     return winner
       ? await this.model.saveGameWithWinner({
