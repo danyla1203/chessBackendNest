@@ -19,7 +19,6 @@ import {
   GameResult,
 } from './entities/game';
 import { GameModel } from './model';
-import { TokenService } from '../auth';
 import { GameWithWinner, DrawGame } from './entities/game/game.types';
 
 @Injectable()
@@ -27,7 +26,6 @@ export class GameService {
   constructor(
     private readonly list: GameList,
     private readonly model: GameModel,
-    private readonly tokenService: TokenService,
   ) {}
 
   private async injectableSaveGame(
