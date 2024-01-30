@@ -18,6 +18,9 @@ export class GameList {
   public findInLobby(id: number): Game | null {
     return this.lobby.find((game) => game.id === id) || null;
   }
+  public gameEnd(id: number) {
+    this.games = this.games.filter((g) => g.id !== id);
+  }
 
   public pushToStartedGames(gameId: number): void {
     const index: number = this.lobby.findIndex(
