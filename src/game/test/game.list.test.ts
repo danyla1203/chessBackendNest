@@ -9,7 +9,7 @@ describe('GameList (unit)', () => {
     for (let i = 0; i < 10; i++) {
       const config = generateConfig();
       const fClient = generateClient();
-      const game = new Game(fClient, config, jest.fn());
+      const game = new Game(fClient, config, jest.fn(), jest.fn());
       list.lobby.push(game);
     }
   });
@@ -17,7 +17,7 @@ describe('GameList (unit)', () => {
   it('addGameToLobby', () => {
     const config = generateConfig();
     const fClient = generateClient();
-    const game = new Game(fClient, config, jest.fn());
+    const game = new Game(fClient, config, jest.fn(), jest.fn());
     list.addGameToLobby(game);
     expect(list.lobby).toHaveLength(11);
   });

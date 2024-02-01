@@ -1,15 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { AuthService, TokenService } from '../auth';
 import { Anonymous } from './entities/Anonymous';
-import { User } from './EmitTypes';
-import { LoggerService } from '../tools/logger';
 
 @Injectable()
 export class ConnectionProvider {
   constructor(
     private readonly authService: AuthService,
     private readonly tokensService: TokenService,
-    private readonly loggingService: LoggerService,
   ) {}
 
   private async authorized(payload, client) {
@@ -20,24 +17,11 @@ export class ConnectionProvider {
     client.name = name;
     client.authorized = true;
     client.userId = id;
-    this.loggingService.log(
-      `Authorized. userId = ${client.userId}, name=${name}`,
-      'Ws Connection',
-    );
   }
   private anonymousSession(payload, client) {
     client.name = payload.name;
     client.userId = payload.userId;
     client.token = client.handshake.query['Authorization'];
-    //TODO: Should patching logic emit a message?
-    client.emit(User.anonymousToken, {
-      tempToken: client.token,
-      userId: client.userId,
-    });
-    this.loggingService.log(
-      `Anonymous. userId = ${client.userId}`,
-      'Ws Connection',
-    );
   }
   private async withToken(payload, client) {
     try {
@@ -57,15 +41,6 @@ export class ConnectionProvider {
     client.userId = user.userId;
     client.name = user.name;
     client.token = user.tempToken;
-    //TODO: Should patching logic emit a message?
-    client.emit(User.anonymousToken, {
-      tempToken: client.token,
-      userId: client.userId,
-    });
-    this.loggingService.log(
-      `Anonymous. userId = ${client.userId}`,
-      'Ws Connection',
-    );
   }
   public async processClient(client) {
     const authToken = client.handshake.query['Authorization'];
@@ -76,6 +51,8 @@ export class ConnectionProvider {
     } catch (e) {
       this.anonymous(client);
     }
-    return client;
+    return client.authorized
+      ? { patch: client, state: 'auth' }
+      : { patch: client, state: 'anon' };
   }
 }

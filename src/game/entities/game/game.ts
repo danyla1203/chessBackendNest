@@ -9,13 +9,11 @@ import {
   Figure,
   FiguresCellState,
   GameData,
-  GameResult,
   GameWithWinner,
   Move,
   DrawGame,
 } from './game.types';
 import { GameChat } from './game.chat';
-import { Game as GameEmits, GameEnd } from '../../EmitTypes';
 
 export class Game {
   id: number;
@@ -31,12 +29,12 @@ export class Game {
     w: boolean;
     b: boolean;
   } = { w: false, b: false };
-  saveGame: (
-    pl1: Player,
-    pl2: Player,
-    result: GameResult,
-    winner?: boolean,
-  ) => Promise<any>;
+  endGameByTimeoutCb: (
+    game: GameWithWinner | DrawGame,
+    winer: Player,
+    looser: Player,
+  ) => void;
+  timerTickCb: (time: { w: number; b: number }) => void;
 
   public get data(): GameData {
     return {
@@ -87,8 +85,9 @@ export class Game {
     return payload;
   }
 
-  constructor(player: Client, config: Config, saveGame) {
-    this.saveGame = saveGame;
+  constructor(player: Client, config: Config, gameEndCallback, timerTickCb) {
+    this.endGameByTimeoutCb = gameEndCallback;
+    this.timerTickCb = (time) => timerTickCb(this.players, time);
     this.id = Math.floor(Math.random() * 100000);
 
     const side: 'w' | 'b' =
@@ -106,38 +105,19 @@ export class Game {
     return player;
   }
 
-  public async endGame(
-    winner: Player,
-    looser: Player,
-  ): Promise<GameWithWinner> {
+  public endGame(winner: Player, looser: Player): GameWithWinner {
     clearInterval(winner.intervalLabel);
     clearInterval(looser.intervalLabel);
     this.isActive = false;
     this.winner = winner;
     this.looser = looser;
-
-    const winnerData = {
-      id: this.id,
-      moves: this.moves,
-      config: this.config,
-    };
-
-    await this.saveGame(winner, looser, winnerData, true);
     return this.gameResultDto(winner, looser) as GameWithWinner;
   }
-  public async endGameByDraw(): Promise<DrawGame> {
+  public endGameByDraw(): DrawGame {
     const [pl1, pl2] = Object.values(this.players);
     clearInterval(pl1.intervalLabel);
     clearInterval(pl2.intervalLabel);
     this.isActive = false;
-
-    const drawData = {
-      id: this.id,
-      config: this.config,
-      moves: this.moves,
-    };
-
-    await this.saveGame(pl1, pl2, drawData);
     return this.gameResultDto(pl1, pl2, true) as DrawGame;
   }
   public setDrawPurposeFrom(side: 'w' | 'b'): void {
@@ -157,22 +137,10 @@ export class Game {
     const black = active.side === 'b' ? active : waiter;
     active.time -= 1000;
     if (active.time <= 0) {
-      await this.endGame(waiter, active);
-      //TODO: Is this method suposed to emit ws messages?
-      const game = this.gameResultDto(waiter, active);
-      active.emit(GameEmits.end, {
-        reason: GameEnd.timeout,
-        winner: true,
-        game,
-      });
-      waiter.emit(GameEmits.end, {
-        reason: GameEnd.timeout,
-        winner: false,
-        game,
-      });
+      const game = this.endGame(waiter, active);
+      this.endGameByTimeoutCb(game, waiter, active);
     }
-    active.emit(GameEmits.timeTick, { w: white.time, b: black.time });
-    waiter.emit(GameEmits.timeTick, { w: white.time, b: black.time });
+    this.timerTickCb({ w: white.time, b: black.time });
   }
   public changeTickingSide(next: Player, old: Player): void {
     clearInterval(old.intervalLabel);

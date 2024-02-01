@@ -3,7 +3,6 @@ import { AuthService, TokenService } from '../../auth';
 import { LoggerService } from '../../tools/logger';
 import { Anonymous } from '../entities/Anonymous';
 import { ConnectionProvider } from '../connection.provider';
-import { User } from '../EmitTypes';
 
 jest.mock('../../auth');
 
@@ -47,7 +46,9 @@ describe('Connection provider (unit)', () => {
         throw new Error();
       });
       jest.spyOn(provider as any, 'anonymous').mockImplementation();
-      await provider.processClient(client);
+      const res = await provider.processClient(client);
+      expect(res.state).toBe('anon');
+      expect(res.patch).toBeDefined();
       expect(provider['anonymous']).toBeCalledWith(client);
     });
     it('connection with correct token', async () => {
@@ -67,8 +68,12 @@ describe('Connection provider (unit)', () => {
       jest.spyOn(tokenService, 'parseToken').mockImplementationOnce(() => {
         return tokenPayload;
       });
-      jest.spyOn(provider as any, 'withToken').mockImplementation();
-      await provider.processClient(client);
+      jest.spyOn(provider as any, 'withToken').mockImplementation(() => {
+        client.authorized = true;
+      });
+      const res = await provider.processClient(client);
+      expect(res.state).toBe('auth');
+      expect(res.patch).toBeDefined();
       expect(provider['withToken']).toBeCalledWith(tokenPayload, client);
     });
     it('anonymous method', () => {
@@ -86,10 +91,6 @@ describe('Connection provider (unit)', () => {
       expect(client.userId).toEqual(1);
       expect(client.name).toEqual('Anonymous');
       expect(client.token).toEqual('string');
-      expect(client.emit).toBeCalledWith(User.anonymousToken, {
-        userId: 1,
-        tempToken: 'string',
-      });
     });
     it('anonymousSession', () => {
       const payload = {

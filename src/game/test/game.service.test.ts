@@ -52,7 +52,7 @@ describe('GameService (unit)', () => {
     cl2 = generateClient(true, faker.number.int());
     cnf = generateConfig('w');
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    gm = new Game(cl1, cnf, () => {});
+    gm = new Game(cl1, cnf, jest.fn(), jest.fn());
     gm.addPlayer(cl2);
     pl1 = gm.players[0];
     pl2 = gm.players[1];
@@ -69,7 +69,7 @@ describe('GameService (unit)', () => {
     service.removeInitedGamesBy(cl);
     expect(mock).toBeCalledWith(cl);
   });
-  describe('injecableSaveGame', () => {
+  describe('save game', () => {
     let saveDrawMock;
     let saveGameWithWinnerMock;
     beforeEach(() => {
@@ -82,34 +82,22 @@ describe('GameService (unit)', () => {
       const pl1 = generatePlayer('w', false);
       const pl2 = generatePlayer('b', true);
       const result = generateGameResult();
-      expect(
-        service['injectableSaveGame'](pl1, pl2, result),
-      ).resolves.toBeNull();
-      expect(
-        service['injectableSaveGame'](pl1, pl2, result, true),
-      ).resolves.toBeNull();
+      expect(service['saveGame'](pl1, pl2, result)).resolves.toBeNull();
+      expect(service['saveGame'](pl1, pl2, result, true)).resolves.toBeNull();
 
       pl2.authorized = false;
-      expect(
-        service['injectableSaveGame'](pl1, pl2, result),
-      ).resolves.toBeNull();
-      expect(
-        service['injectableSaveGame'](pl1, pl2, result, true),
-      ).resolves.toBeNull();
+      expect(service['saveGame'](pl1, pl2, result)).resolves.toBeNull();
+      expect(service['saveGame'](pl1, pl2, result, true)).resolves.toBeNull();
 
       pl1.authorized = true;
-      expect(
-        service['injectableSaveGame'](pl1, pl2, result),
-      ).resolves.toBeNull();
-      expect(
-        service['injectableSaveGame'](pl1, pl2, result, true),
-      ).resolves.toBeNull();
+      expect(service['saveGame'](pl1, pl2, result)).resolves.toBeNull();
+      expect(service['saveGame'](pl1, pl2, result, true)).resolves.toBeNull();
     });
     it('if saving with winner method should call model.saveGameWithWinner', () => {
       const pl1 = generatePlayer('w', true);
       const pl2 = generatePlayer('b', true);
       const result = generateGameResult();
-      service['injectableSaveGame'](pl1, pl2, result, true);
+      service['saveGame'](pl1, pl2, result, true);
 
       expect(saveGameWithWinnerMock).toBeCalledWith({
         ...result,
@@ -121,7 +109,7 @@ describe('GameService (unit)', () => {
       const pl1 = generatePlayer('w', true);
       const pl2 = generatePlayer('b', true);
       const result = generateGameResult();
-      service['injectableSaveGame'](pl1, pl2, result);
+      service['saveGame'](pl1, pl2, result);
 
       expect(saveDrawMock).toBeCalledWith({
         ...result,
@@ -193,7 +181,8 @@ describe('GameService (unit)', () => {
     it('should call game.end with winner and return result', async () => {
       gm.winner = pl2;
       gm.looser = pl1;
-      jest.spyOn(gm, 'endGame').mockImplementationOnce(async () => gm);
+      jest.spyOn(gm, 'endGame').mockImplementationOnce(() => gm);
+      jest.spyOn(service as any, 'saveGame').mockImplementation();
       jest.spyOn(service, 'findGameById').mockImplementationOnce(() => gm);
       expect(service.surrender(gm.id, cl1)).resolves.toStrictEqual(gm);
       expect(gm.endGame).toBeCalledWith(pl2, pl1);
@@ -250,9 +239,10 @@ describe('GameService (unit)', () => {
         pl1,
         pl2,
       };
-      jest.spyOn(gm, 'endGameByDraw').mockImplementationOnce(async () => {
+      jest.spyOn(gm, 'endGameByDraw').mockImplementationOnce(() => {
         return stub;
       });
+      jest.spyOn(service as any, 'saveGame').mockImplementation();
       expect(service.acceptDraw(gm.id, cl1)).resolves.toStrictEqual(stub);
     });
   });
