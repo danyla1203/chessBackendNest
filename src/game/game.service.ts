@@ -18,6 +18,7 @@ import {
   Message,
   GameResult,
 } from './entities/game';
+import { Game as GameEmits, GameEnd } from './EmitTypes';
 import { GameModel } from './model';
 import { GameWithWinner, DrawGame } from './entities/game/game.types';
 
@@ -28,7 +29,7 @@ export class GameService {
     private readonly model: GameModel,
   ) {}
 
-  private async injectableSaveGame(
+  private async saveGame(
     pl1: Player,
     pl2: Player,
     result: GameResult,
@@ -44,12 +45,33 @@ export class GameService {
         })
       : await this.model.saveDraw({ ...result, pl1, pl2 });
   }
+  private injectableTimerTick(
+    players: Player[],
+    time: { w: number; b: number },
+  ) {
+    for (const pl of players) {
+      pl.emit(GameEmits.timeTick, { w: time.w, b: time.b });
+    }
+  }
+  private injectableGameEndCallback(game, winner: Player, looser: Player) {
+    winner.emit(GameEmits.end, {
+      reason: GameEnd.timeout,
+      winner: true,
+      game,
+    });
+    looser.emit(GameEmits.end, {
+      reason: GameEnd.timeout,
+      winner: false,
+      game,
+    });
+  }
 
   public createGame(player: Client, config: CreateGameDto): Game {
     const newGame = new Game(
       player,
       config,
-      this.injectableSaveGame.bind(this),
+      this.injectableGameEndCallback,
+      this.injectableTimerTick,
     );
     this.list.addGameToLobby(newGame);
     return newGame;
@@ -88,14 +110,17 @@ export class GameService {
     if (!game) throw new NotFoundException('Game not found');
     return game;
   }
-  public leaveGame(client: Client) {
+
+  public async leaveGame(client: Client): Promise<GameWithWinner> {
     const game = this.list.findPendingClientGame(client);
     if (!game) throw new NotFoundException('Game not found');
 
     const [pl1, pl2] = game.players;
     const winner = pl1.userId !== client.userId ? pl1 : pl2;
     const looser = pl1.userId === client.userId ? pl1 : pl2;
-    return game.endGame(winner, looser);
+    const result = game.endGame(winner, looser);
+    await this.saveGame(winner, looser, result, true);
+    return result;
   }
   public updateSocket(socket, game: Game): Player {
     const adaptedSocket = {
@@ -158,8 +183,9 @@ export class GameService {
     const [pl1, pl2] = game.players;
     const winner = pl1.userId !== client.userId ? pl1 : pl2;
     const looser = pl1.userId === client.userId ? pl1 : pl2;
-
-    return game.endGame(winner, looser);
+    const result = game.endGame(winner, looser);
+    await this.saveGame(winner, looser, result, true);
+    return result;
   }
 
   public purposeDraw(gameId: number, client: Client): DrawAgreement {
@@ -176,9 +202,10 @@ export class GameService {
     const { side } = game.players.find((pl) => pl.userId === client.userId);
 
     if (!w && !b) throw new ConflictException('Draw purpose wasnt set');
-
     game.setDrawPurposeFrom(side);
-    return game.endGameByDraw();
+    const result = game.endGameByDraw();
+    await this.saveGame(result.pl1, result.pl2, result);
+    return result;
   }
 
   public rejectDraw(gameId: number): DrawAgreement {

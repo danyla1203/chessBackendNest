@@ -18,14 +18,14 @@ describe('Game entity (unit)', () => {
   beforeEach(() => {
     config = generateConfig();
     fClient = generateClient();
-    game = new Game(fClient, config, jest.fn());
+    game = new Game(fClient, config, jest.fn(), jest.fn());
   });
   afterEach(() => {
     jest.clearAllMocks();
   });
   it('constructor', () => {
     jest.spyOn(Math, 'random').mockImplementation(() => 0.12345);
-    const newGame = new Game(fClient, config, jest.fn());
+    const newGame = new Game(fClient, config, jest.fn(), jest.fn());
     expect(newGame.id).toBe(12345);
     expect(newGame.isActive).toBe(false);
     expect(newGame.players).toContainEqual({
@@ -39,7 +39,6 @@ describe('Game entity (unit)', () => {
     expect(newGame.moves).toHaveLength(0);
     expect(newGame.winner).toBe(null);
     expect(newGame.looser).toBe(null);
-    expect(newGame.saveGame).toBeDefined();
     expect(newGame.draw).toStrictEqual({
       w: false,
       b: false,
@@ -151,8 +150,6 @@ describe('Game entity (unit)', () => {
       const prevPl1Time = pl1.time;
       game.timerTick(pl1, pl2);
       expect(pl1.time).toEqual(prevPl1Time - 1000);
-      expect(pl1.emit).toBeCalled();
-      expect(pl2.emit).toBeCalled();
     });
     it('should end game if time is over', () => {
       const player = generateClient();
@@ -180,17 +177,11 @@ describe('Game entity (unit)', () => {
       const [pl1, pl2] = game.players;
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       pl2.intervalLabel = setInterval(() => {}, 1000);
-      const saveGameMock = jest.spyOn(game, 'saveGame');
 
       game.endGameByDraw();
       expect(clearInterval).toBeCalledWith(pl1.intervalLabel);
       expect(clearInterval).toBeCalledWith(pl2.intervalLabel);
       expect(game.isActive).toBeFalsy();
-      expect(saveGameMock).toBeCalledWith(pl1, pl2, {
-        id: game.id,
-        config: game.config,
-        moves: game.moves,
-      });
     });
   });
   describe('endGame (with winner)', () => {
@@ -205,7 +196,6 @@ describe('Game entity (unit)', () => {
       const [pl1, pl2] = game.players;
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       pl2.intervalLabel = setInterval(() => {}, 1000);
-      const saveGameMock = jest.spyOn(game, 'saveGame');
 
       game.endGame(pl1, pl2);
       expect(clearInterval).toBeCalledWith(pl1.intervalLabel);
@@ -213,17 +203,6 @@ describe('Game entity (unit)', () => {
       expect(game.isActive).toBeFalsy();
       expect(game.winner).toStrictEqual(pl1);
       expect(game.looser).toStrictEqual(pl2);
-      //TODO: Check twice using of pl1 and pl2
-      expect(saveGameMock).toBeCalledWith(
-        pl1,
-        pl2,
-        {
-          id: game.id,
-          config: game.config,
-          moves: game.moves,
-        },
-        true,
-      );
     });
   });
   describe('makeTurn', () => {
